@@ -19,18 +19,18 @@ NetworkClient::NetworkClient(int port) : _thread([=] { Listen(); }), _tempSendTh
 	
 	SOCKADDR_IN address;
 
-
 	address.sin_family = AF_INET;
 	address.sin_port = htons(_port);
 	address.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	int iResult = bind(_socket, (SOCKADDR*)& address, sizeof(address));
-	if(iResult == -1)
+	if (iResult == -1)
 	{
 		printf("Failed to bind socket: %d\n", WSAGetLastError());
 	}
+	else
+		_bound = true;
  }
-
 
 NetworkClient::~NetworkClient()
 {
@@ -41,6 +41,9 @@ void NetworkClient::Listen()
 {
 	while(true)
 	{
+		if (!_bound)
+			continue;
+
 		char buffer[1024];
 		sockaddr_in sender;
 		int size = sizeof(sender);
@@ -64,11 +67,14 @@ void NetworkClient::SendTemp()
 {
 	while(true)
 	{
+		if (!_bound)
+			continue;
+
 		char buffer[] = { 'h', 'e', 'l', 'l', 'o' };
 		sockaddr_in RecvAddr;
 		RecvAddr.sin_family = AF_INET;
 		RecvAddr.sin_port = htons(_port);
-		RecvAddr.sin_addr.s_addr = inet_addr("10.20.3.3");
+		RecvAddr.sin_addr.s_addr = inet_addr("192.168.0.103");
 		int size = sizeof(buffer);
 		int result = sendto(_socket, buffer, size, 0, (SOCKADDR*) &RecvAddr, sizeof(RecvAddr));
 		if(result == -1)

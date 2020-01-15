@@ -16,6 +16,7 @@ private:
 	std::thread _thread;
 	std::thread _tempSendThread;
 	SOCKET _socket;
+	bool _bound = false;
 	int _port;
 };
 

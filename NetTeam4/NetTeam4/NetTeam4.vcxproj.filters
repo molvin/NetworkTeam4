@@ -26,5 +26,8 @@
     <ClInclude Include="src\Networking\NetworkClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Networking\BinaryStream.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
