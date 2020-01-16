@@ -1,6 +1,8 @@
 #include "NetworkClient.h"
 #include <iostream>
 #include <errno.h>
+#include "BinaryStream.hpp"
+#include "../Test/TestMessage.h"
 
 NetworkClient::NetworkClient(int port) : _thread([=] { Listen(); })
 {
@@ -44,10 +46,10 @@ void NetworkClient::Listen()
 		if (!_bound)
 			continue;
 
-		char buffer[1024];
+		char buffer[65507];
 		sockaddr_in sender;
 		int size = sizeof(sender);
-		int receiveResult = recvfrom(_socket, buffer, 1024, 0, (SOCKADDR*)&sender, &size);
+		int receiveResult = recvfrom(_socket, buffer, 65507, 0, (SOCKADDR*)&sender, &size);
 		//Receive result is 0 on close, negative on error, otherwise the size of received buffer§
 
 		if (receiveResult == -1)
@@ -59,43 +61,58 @@ void NetworkClient::Listen()
 		{
 			printf("Received %d bytes \n", receiveResult);
 			printf("%.*s\n", receiveResult, buffer);
+
+			BinaryStream stream;			
+
+			for(int i = 0; i < receiveResult; i++)
+			{
+				stream.Buffer.push_back(buffer[i]);
+			}
+
+			while (!stream.EndOfStream())
+			{
+				byte typeByte = stream.Read<byte>();
+				printf("Type: %d\n", typeByte);
+				_messages[(MessageType)typeByte]->Read(&stream);							
+			}
+			
 		}
 	}
 }
 
-void NetworkClient::SendTemp()
+void NetworkClient::SendData()
 {
-	while(true)
+	BinaryStream stream;
+	int size = 0;
+
+	//stream.Write<byte>(_messageQueue.size());
+	//size++;
+	while (!_messageQueue.empty())
 	{
-		if (!_bound)
-			continue;
+		std::tuple<MessageType, Message*> tuple = _messageQueue.front();
+		MessageType type = std::get<0>(tuple);
+		Message* message = std::get<1>(tuple);
 
-		char buffer[] = { 'h', 'e', 'l', 'l', 'o' };
-		sockaddr_in RecvAddr;
-		RecvAddr.sin_family = AF_INET;
-		RecvAddr.sin_port = htons(_port);
-		RecvAddr.sin_addr.s_addr = inet_addr("192.168.0.103");
-		int size = sizeof(buffer);
-		int result = sendto(_socket, buffer, size, 0, (SOCKADDR*) &RecvAddr, sizeof(RecvAddr));
-		if(result == -1)
-		{
-			int error = WSAGetLastError();
-			printf("Send Error: %d\n", error);
-		}
-		else
-		{
-			//printf("Sent %d bytes\n", result);
-		}
+		//write the type 
+		stream.Write<byte>((byte)type);
+		//add size of type byte
+		size++;
+		//write message and add size
+		size += message->Write(&stream);
+
+		_messageQueue.pop();
 	}
-}
+	if (size == 0)
+	{
+		return;
+	}
 
-void NetworkClient::SendData(unsigned char* buffer, int size)
-{
 	sockaddr_in RecvAddr;
 	RecvAddr.sin_family = AF_INET;
 	RecvAddr.sin_port = htons(_port);
-	RecvAddr.sin_addr.s_addr = inet_addr("192.168.0.103");
-	int result = sendto(_socket, (const char*)buffer, size, 0, (SOCKADDR*)&RecvAddr, sizeof(RecvAddr));
+	RecvAddr.sin_addr.s_addr = inet_addr("10.20.3.132");
+
+	int result = sendto(_socket, (const char*)&stream.Buffer[0], size, 0, (SOCKADDR*)&RecvAddr, sizeof(RecvAddr));
 	if (result == -1)
 	{
 		int error = WSAGetLastError();
@@ -103,9 +120,19 @@ void NetworkClient::SendData(unsigned char* buffer, int size)
 	}
 }
 
+void NetworkClient::AddMessageToQueue(Message* message, MessageType type)
+{
+	_messageQueue.push({ type, message });
+}
+
+void NetworkClient::RegisterMessage(Message* message, MessageType type)
+{
+	//TODO: copy and make our own message, to ensure it is not destroyed
+	_messages[type] = message;
+}
+
 void NetworkClient::Close()
 {
 	_thread.detach();
-	_tempSendThread.detach();
 	closesocket(_socket);
 }
