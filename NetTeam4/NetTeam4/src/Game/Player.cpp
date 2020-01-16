@@ -1,4 +1,5 @@
 #include "Player.h"
+Player* PlayerMessage::player = nullptr;
 
 void PlayerMessage::Read(BinaryStream* stream){
 
