@@ -9,7 +9,8 @@
 enum class MessageType : unsigned char
 {
 	   Test = 0,
-	   OtherTest
+	   OtherTest,
+	   Player
 };
 
 class NetworkClient
@@ -30,6 +31,7 @@ private:
 	std::queue<std::tuple<MessageType, Message*>> _messageQueue;
 	bool _bound = false;
 	int _port;
+	bool _closeThread = false;
 	std::unordered_map<MessageType, Message*> _messages;
 };
 

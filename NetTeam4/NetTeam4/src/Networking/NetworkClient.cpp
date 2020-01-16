@@ -41,7 +41,7 @@ NetworkClient::~NetworkClient()
 
 void NetworkClient::Listen()
 {
-	while(true)
+	while(!_closeThread)
 	{
 		if (!_bound)
 			continue;
@@ -78,6 +78,7 @@ void NetworkClient::Listen()
 			
 		}
 	}
+	printf("Closing thread");
 }
 
 void NetworkClient::SendData()
@@ -85,8 +86,6 @@ void NetworkClient::SendData()
 	BinaryStream stream;
 	int size = 0;
 
-	//stream.Write<byte>(_messageQueue.size());
-	//size++;
 	while (!_messageQueue.empty())
 	{
 		std::tuple<MessageType, Message*> tuple = _messageQueue.front();
@@ -110,7 +109,7 @@ void NetworkClient::SendData()
 	sockaddr_in RecvAddr;
 	RecvAddr.sin_family = AF_INET;
 	RecvAddr.sin_port = htons(_port);
-	RecvAddr.sin_addr.s_addr = inet_addr("10.20.3.132");
+	RecvAddr.sin_addr.s_addr = inet_addr("10.20.2.24");
 
 	int result = sendto(_socket, (const char*)&stream.Buffer[0], size, 0, (SOCKADDR*)&RecvAddr, sizeof(RecvAddr));
 	if (result == -1)
@@ -133,6 +132,10 @@ void NetworkClient::RegisterMessage(Message* message, MessageType type)
 
 void NetworkClient::Close()
 {
-	_thread.detach();
+	_closeThread = true;
 	closesocket(_socket);
+	while (_thread.joinable())	
+	{
+		_thread.join();
+	}
 }

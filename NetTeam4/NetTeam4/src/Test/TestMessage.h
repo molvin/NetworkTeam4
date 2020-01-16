@@ -10,6 +10,5 @@ public:
 
 	int TestInt = 6;
 	bool TestBool = true;
-
 };
 
