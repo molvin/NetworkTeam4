@@ -8,6 +8,7 @@ public:
 	NetworkClient(int port);
 	~NetworkClient();
 	void Close();
+	void SendData(unsigned char* buffer, int size);
 
 private:
 	void Listen();

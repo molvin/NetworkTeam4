@@ -2,7 +2,7 @@
 #include <iostream>
 #include <errno.h>
 
-NetworkClient::NetworkClient(int port) : _thread([=] { Listen(); }), _tempSendThread([=] {SendTemp(); })
+NetworkClient::NetworkClient(int port) : _thread([=] { Listen(); })
 {
 	_port = port;
 	WSADATA info;
@@ -86,6 +86,20 @@ void NetworkClient::SendTemp()
 		{
 			//printf("Sent %d bytes\n", result);
 		}
+	}
+}
+
+void NetworkClient::SendData(unsigned char* buffer, int size)
+{
+	sockaddr_in RecvAddr;
+	RecvAddr.sin_family = AF_INET;
+	RecvAddr.sin_port = htons(_port);
+	RecvAddr.sin_addr.s_addr = inet_addr("192.168.0.103");
+	int result = sendto(_socket, (const char*)buffer, size, 0, (SOCKADDR*)&RecvAddr, sizeof(RecvAddr));
+	if (result == -1)
+	{
+		int error = WSAGetLastError();
+		printf("Send Error: %d\n", error);
 	}
 }
 

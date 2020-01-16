@@ -73,7 +73,7 @@ template<typename T> inline T BinaryStream::Read()
 {
 	// Get value at cursor and advance
 	T value = Peek<T>();
-	cursor += sizeof(T);
+	Cursor += sizeof(T);
 
 	return value;
 }
@@ -81,12 +81,12 @@ template<typename T> inline T BinaryStream::Read()
 template<typename T> inline T BinaryStream::Peek() const 
 {
 	// Check if buffer is too small
-	if (cursor + sizeof(T) > Size())
+	if (Cursor + sizeof(T) > Size())
 		throw std::exception("Tried to read beyond stream size");
 
 	T value;
 	// Copy memory into value from the buffer
-	memcpy(&value, &buffer[cursor], sizeof(T));
+	memcpy(&value, &Buffer[Cursor], sizeof(T));
 
 	return value;
 }
