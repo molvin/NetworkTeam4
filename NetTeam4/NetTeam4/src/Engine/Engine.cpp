@@ -1,0 +1,92 @@
+#include "Engine.h"
+
+static SDL_Window* Window;
+static SDL_Renderer* Renderer;
+static bool IsOpen;
+static int CurrentFrame;
+
+struct InputState{
+	bool Pressed;
+	int FrameNum;
+};
+static InputState KeyStates[(unsigned int)Key::MAX];
+
+
+void engineInit()
+{
+	SDL_Init(SDL_INIT_VIDEO);
+	Window = SDL_CreateWindow("Hello World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
+	Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_ACCELERATED);
+	IsOpen = true;
+	CurrentFrame = 0;
+}
+void engClear(){
+	// Clear for next frame
+	SDL_SetRenderDrawColor(Renderer, 0x00, 0x00, 0x00, 0xFF);
+	SDL_RenderClear(Renderer);
+}
+void engClose(){
+	// 'Closes' the window (sets the flag to close, actual closing happens in Destroy
+	IsOpen = false;
+}
+bool engIsOpen()
+{
+	return IsOpen;
+}
+void engineUpdate()
+{
+	CurrentFrame++;
+
+	// Poll window events
+	SDL_Event e;
+	while (SDL_PollEvent(&e)){
+		if (e.type == SDL_QUIT)
+			engClose();
+
+		if (e.type == SDL_KEYDOWN){
+			// We dont care about repeats
+			if (e.key.repeat == 0){
+				InputState& state = KeyStates[e.key.keysym.scancode];
+				state.Pressed = true;
+				state.FrameNum = CurrentFrame;
+			}
+		}
+
+		if (e.type == SDL_KEYUP){
+			InputState& state = KeyStates[e.key.keysym.scancode];
+			state.Pressed = false;
+			state.FrameNum = CurrentFrame;
+		}
+	}
+
+	// Calculate next frame delta
+	//hr_clock::time_point Now = hr_clock::now();
+	//FrameDelta = duration_cast<microseconds>(Now - LastFrameTime).count() * 1e-6f;  // 10^6 microseconds in a second
+	//LastFrameTime = Now;
+
+	// Present SDL renderer
+	SDL_RenderPresent(Renderer);
+	engClear();
+
+	// Do a small delay so we dont fry the CPU
+	SDL_Delay(1);
+}
+
+void engDrawRect(int X, int Y, int Width, int Height){
+	SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
+
+	SDL_Rect rect = { X, Y, Width, Height };
+	SDL_RenderFillRect(Renderer, &rect);
+}
+
+// Input
+bool engGetKey(Key InKey)
+{
+	return KeyStates[(int)InKey].Pressed;
+}
+bool engGetKeyDown(Key InKey)
+{
+	// Is pressed and changed this frame
+	InputState& State = KeyStates[(int)InKey];
+	return State.Pressed && State.FrameNum == CurrentFrame;
+}
