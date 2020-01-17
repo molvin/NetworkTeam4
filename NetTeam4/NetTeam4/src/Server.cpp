@@ -2,10 +2,12 @@
 #include "Game/Player.h"
 #include "Engine/Engine.h"
 #include "Engine/Key.h"
+#include "Client.h"
 
 Server::Server() : SocketClient(50000)
 {
 	SocketClient.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
+	SocketClient.RegisterMessage((Message*)new InputMessage(), MessageType::Input);
 
 	SocketClient.Host();
 
