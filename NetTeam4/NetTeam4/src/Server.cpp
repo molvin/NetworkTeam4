@@ -13,24 +13,20 @@ Server::Server() : SocketClient(50000)
 
 void Server::Update(Player& player)
 {
-	if (engGetKey(Key::W))
-		player.y -= 1;
-	if (engGetKey(Key::S))
-		player.y += 1;
-	if (engGetKey(Key::A))
-		player.x -= 1;
-	if (engGetKey(Key::D))
-		player.x += 1;
-
-	if (engGetKeyDown(Key::Escape))
-		engClose();
-
+	this->player = &player;
+	
 	PlayerMessage playerMessage;
 	playerMessage.x = player.x;
 	playerMessage.y = player.y;
 	SocketClient.AddMessageToQueue((Message*)&playerMessage, MessageType::Player);
 
 
-	SocketClient.ReadData();
+	SocketClient.ReadData(*this);
 	SocketClient.SendData();
+}
+
+void Server::UpdatePlayer(int x, int y)
+{
+	player->x = x;
+	player->y = y;
 }

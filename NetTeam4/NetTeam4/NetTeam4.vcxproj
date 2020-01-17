@@ -167,6 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Client.h" />
+    <ClInclude Include="src\NetworkManager.h" />
     <ClInclude Include="src\Server.h" />
     <ClInclude Include="src\Game\Player.h" />
     <ClInclude Include="src\Engine\Engine.h" />

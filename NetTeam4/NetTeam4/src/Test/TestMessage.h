@@ -5,7 +5,7 @@
 class TestMessage : Message
 {
 public:
-	virtual void Read(BinaryStream* stream);
+	virtual void Read(BinaryStream* stream, NetworkManager& manager);
 	virtual int Write(BinaryStream* stream);
 
 	int TestInt = 6;

@@ -14,7 +14,7 @@ public:
 	int x;
 	int y;
 
-	virtual void Read(BinaryStream* stream) override;
+	virtual void Read(BinaryStream* stream, NetworkManager& manager) override;
 	virtual int Write(BinaryStream* stream) override;
 	static Player* player;
 };

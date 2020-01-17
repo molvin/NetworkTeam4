@@ -10,30 +10,6 @@
 
 #undef main
 
-void InitClient(NetworkClient& client)
-{
-	client.Join("10.20.3.132", 50000);
-}
-void InitServer(NetworkClient& server)
-{
-	server.Host();
-}
-
-void UpdateClient(NetworkClient& client)
-{
-	client.ReadData();
-}
-void UpdateServer(NetworkClient& server, Player& player)
-{
-
-	PlayerMessage playerMessage;
-	playerMessage.x = player.x;
-	playerMessage.y = player.y;
-	server.AddMessageToQueue((Message*)&playerMessage, MessageType::Player);
-
-	server.SendData();
-}
-
 #define SERVER true
 
 Server* server = nullptr;

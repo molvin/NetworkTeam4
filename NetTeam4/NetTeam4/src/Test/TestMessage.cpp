@@ -1,6 +1,6 @@
 #include "TestMessage.h"
 
-void TestMessage::Read(BinaryStream* stream)
+void TestMessage::Read(BinaryStream* stream, NetworkManager& manager)
 {
 	TestInt = stream->Read<int>();
 	TestBool = stream->Read<bool>();

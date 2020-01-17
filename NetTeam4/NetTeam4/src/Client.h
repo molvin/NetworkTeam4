@@ -2,7 +2,7 @@
 #include "Networking/NetworkClient.h"
 #include "Game/Player.h"
 
-class Client
+class Client : NetworkManager
 {
 public:
 	Client();
@@ -12,3 +12,11 @@ public:
 	NetworkClient SocketClient;
 };
 
+class InputMessage : Message
+{
+public:
+	int x, y;
+
+	virtual void Read(BinaryStream* stream, NetworkManager& manager) override;
+	virtual int Write(BinaryStream* stream) override;
+};

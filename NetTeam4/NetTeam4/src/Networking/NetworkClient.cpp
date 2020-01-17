@@ -142,7 +142,7 @@ void NetworkClient::SendData()
 	}
 }
 
-void NetworkClient::ReadData()
+void NetworkClient::ReadData(NetworkManager& manager)
 {
 	_lock.lock();
 
@@ -153,7 +153,7 @@ void NetworkClient::ReadData()
 		{
 			byte typeByte = stream.Read<byte>();
 			printf("Type: %d\n", typeByte);
-			_messages[(MessageType)typeByte]->Read(&stream);
+			_messages[(MessageType)typeByte]->Read(&stream, manager);
 		}
 		_streams.pop();
 	}

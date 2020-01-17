@@ -1,6 +1,6 @@
 #include "OtherTestMessage.h"
 
-void OtherTestMessage::Read(BinaryStream* stream)
+void OtherTestMessage::Read(BinaryStream* stream, NetworkManager& manager)
 {
 	Value = stream->Read<float>();
 	printf("Other test message %f\n", Value);

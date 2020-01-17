@@ -1,7 +1,7 @@
 #include "Player.h"
 Player* PlayerMessage::player = nullptr;
 
-void PlayerMessage::Read(BinaryStream* stream){
+void PlayerMessage::Read(BinaryStream* stream, NetworkManager& manager){
 
 	x = stream->Read<int>();
 	y = stream->Read<int>();
