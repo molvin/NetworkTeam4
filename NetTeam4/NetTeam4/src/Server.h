@@ -6,7 +6,7 @@ class Server
 public:
 	Server();
 	void Update();
-private:
-	NetworkClient _client;
+
+	NetworkClient SocketClient;
 };
 

@@ -1,11 +1,16 @@
 #include "Server.h"
+#include "Game/Player.h"
 
-Server::Server() : _client(50000)
+Server::Server() : SocketClient(50000)
 {
-	_client.Host();
+	SocketClient.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
+
+	SocketClient.Host();
+
 }
 
 void Server::Update()
 {
-	_client.SendData();
+	SocketClient.ReadData();
+	SocketClient.SendData();
 }

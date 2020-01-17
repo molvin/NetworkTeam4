@@ -5,6 +5,9 @@
 #include "Test/OtherTestMessage.h"
 #include "Engine/Engine.h"
 #include "Game/Player.h"
+#include "Server.h"
+#include "Client.h"
+
 #undef main
 
 void InitClient(NetworkClient& client)
@@ -31,17 +34,26 @@ void UpdateServer(NetworkClient& server, Player& player)
 	server.SendData();
 }
 
+#define SERVER true
+
+Server* server = nullptr;
+Client* client = nullptr;
 
 int main()
 {	
 	engineInit();
 
-	NetworkClient client(50000);
+	if (SERVER)
+	{
+		server = new Server();
+	}
+	else
+	{
+		client = new Client();
+		client->Join("10.20.3.132", 50000);
+	}
 
-	InitServer(client);
-	//InitClient(client);
 
-	client.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
 
 	Player player{ 0, 0, 50, 50 };
 	PlayerMessage::player = &player;
@@ -61,12 +73,27 @@ int main()
 		if (engGetKey(Key::D))
 			player.x += 1;
 
-		
-		//UpdateClient(temp);
-		UpdateServer(client, player);
+		if (engGetKeyDown(Key::Escape))
+			engClose();
+
+		if (SERVER)
+		{
+			server->Update();
+		}
+		else
+		{
+			client->Update();
+		}
 	}
 	
-	client.Close();	
+	if(SERVER)
+	{
+		server->SocketClient.Close();
+	}
+	else
+	{
+		client->SocketClient.Close();
+	}
 
 	return 0;
 }
