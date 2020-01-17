@@ -46,10 +46,10 @@ void NetworkClient::Listen()
 		if (!_bound)
 			continue;
 
-		char buffer[65507];
+		char buffer[1024];
 		sockaddr_in sender;
 		int size = sizeof(sender);
-		int receiveResult = recvfrom(_socket, buffer, 65507, 0, (SOCKADDR*)&sender, &size);
+		int receiveResult = recvfrom(_socket, buffer, 1024, 0, (SOCKADDR*)&sender, &size);
 		//Receive result is 0 on close, negative on error, otherwise the size of received buffer
 
 		if (receiveResult == -1)
@@ -65,8 +65,13 @@ void NetworkClient::Listen()
 			//Check if host should add known connection
 			if (receiveResult == 1 && buffer[0] == (unsigned char)MessageType::Join)
 			{
-				_connections[ip] = Connection{ ip, sender.sin_port };
-				printf("Added new connection %s, %d\n", ip, sender.sin_port);
+				BinaryStream stream;
+				for (int i = 0; i < receiveResult; i++)
+					stream.Buffer.push_back(buffer[i]);
+				stream.Read<byte>();
+				int port = stream.Read<int>();
+				_connections[ip] = Connection{ ip, port };
+				printf("Added new connection %s, %d\n", ip.c_str(), port);
 				return;
 			}
 		}
@@ -128,6 +133,10 @@ void NetworkClient::SendData()
 			int error = WSAGetLastError();
 			printf("Send Error: %d\n", error);
 		}
+		else
+		{
+			printf("Sent %d bytes to %s, with port %d\n", size, it.second.Ip.c_str(), it.second.Port);
+		}
 	}
 }
 
@@ -146,13 +155,15 @@ void NetworkClient::Join(std::string ip, int port)
 {
 	_hosting = false;
 	_connections[ip] = Connection{ ip, port };
-	byte send[] = { (byte)MessageType::Join };
+	BinaryStream stream;
+	stream.Write<byte>((byte)MessageType::Join);
+	stream.Write<int>(port);
 
 	sockaddr_in RecvAddr;
 	RecvAddr.sin_family = AF_INET;
 	RecvAddr.sin_port = htons(port);
 	RecvAddr.sin_addr.s_addr = inet_addr(ip.c_str());
-	int result = sendto(_socket, (const char*)&send, 1, 0, (SOCKADDR*)&RecvAddr, sizeof(RecvAddr));
+	int result = sendto(_socket, (const char*)&stream.Buffer[0], sizeof(byte) + sizeof(int), 0, (SOCKADDR*)&RecvAddr, sizeof(RecvAddr));
 }
 
 void NetworkClient::Host()

@@ -38,8 +38,8 @@ int main()
 
 	NetworkClient client(50000);
 
-	//InitClient(client);
 	InitServer(client);
+	//InitClient(client);
 
 
 	client.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
