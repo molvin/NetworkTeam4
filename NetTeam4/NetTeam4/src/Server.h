@@ -29,6 +29,7 @@ public:
 
 class SpawnPlayerMessage : Message
 {
+public:
 	int OwnerId;
 	int x, y;
 

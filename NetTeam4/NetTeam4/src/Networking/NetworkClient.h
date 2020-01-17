@@ -16,7 +16,8 @@ enum class MessageType : unsigned char
 	   Player,
 	   Join,
 	   Input,
-	   ConnectionId
+	   ConnectionId,
+	   PlayerSpawnMessage,
 };
 struct Connection
 {

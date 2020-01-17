@@ -26,7 +26,7 @@ int main()
 	{
 		server = new Server();
 		std::string s;
-		server->SocketClient.OnConnection = std::bind(&Server::OnConnect, server, s);
+		server->SocketClient.OnConnection = std::bind(&Server::OnConnect, server, std::placeholders::_1);
 	}
 	else
 	{

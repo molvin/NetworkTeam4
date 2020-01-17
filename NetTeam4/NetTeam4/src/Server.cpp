@@ -32,14 +32,28 @@ void Server::UpdatePlayer(int id, int x, int y)
 
 void Server::OnConnect(std::string ip)
 {
-	printf("Connected\n");
+	printf("Connected: %s\n", ip.c_str());
 	//TODO: give id to connection, spawn a player for connection
 	ConnectionIdMessage* message = new ConnectionIdMessage();
-	message->Id = IdCounter++;
+	int id = IdCounter++;
+	message->Id = id;
 
 	SocketClient.SendData();
 	SocketClient.AddMessageToQueue((Message*)message, MessageType::ConnectionId);
 	SocketClient.SendData(ip);
+
+	_players[id] = Player();
+	_players[id].Id = id;
+	_players[id].x = _players[id].y = id * 100;
+
+	for (auto it : _players)
+	{
+		SpawnPlayerMessage* playerSpawnMessage = new SpawnPlayerMessage();
+		playerSpawnMessage->OwnerId = it.first;
+		playerSpawnMessage->x = it.second.x;
+		playerSpawnMessage->y = it.second.y;
+		SocketClient.AddMessageToQueue((Message*)playerSpawnMessage, MessageType::PlayerSpawnMessage);
+	}	
 }
 
 void ConnectionIdMessage::Read(BinaryStream* stream, NetworkManager& manager)
@@ -58,9 +72,19 @@ int ConnectionIdMessage::Write(BinaryStream* stream)
 
 void SpawnPlayerMessage::Read(BinaryStream* stream, NetworkManager& manager)
 {
+	OwnerId = stream->Read<int>();
+	x = stream->Read<int>();
+	y = stream->Read<int>();
+
+	printf("Received player spawn message: id: %d, x: %d, y: %d\n", OwnerId, x, y);
 }
 
 int SpawnPlayerMessage::Write(BinaryStream* stream)
 {
-	return 0;
+	stream->Write<int>(OwnerId);
+	stream->Write<int>(x);
+	stream->Write<int>(y);
+
+	printf("Sending player spawn message\n");
+	return sizeof(int) * 3;
 }
