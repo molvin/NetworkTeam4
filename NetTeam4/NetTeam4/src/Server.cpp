@@ -17,11 +17,14 @@ Server::Server() : SocketClient(50000)
 void Server::Update(Player& player)
 {
 	this->player = &player;
+
+	if (engGetKeyDown(Key::Escape))
+		engClose();
 	
-	PlayerMessage playerMessage;
-	playerMessage.x = player.x;
-	playerMessage.y = player.y;
-	SocketClient.AddMessageToQueue((Message*)&playerMessage, MessageType::Player);
+	PlayerMessage* playerMessage = new PlayerMessage();
+	playerMessage->x = player.x;
+	playerMessage->y = player.y;
+	SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
 	
 	SocketClient.ReadData(*this);
 	SocketClient.SendData();
@@ -37,10 +40,10 @@ void Server::OnConnect()
 {
 	printf("Connected\n");
 	//TODO: give id to connection, spawn a player for connection
-	std::shared_ptr<ConnectionIdMessage> message = std::make_shared<ConnectionIdMessage>();
+	ConnectionIdMessage* message = new ConnectionIdMessage();
 	message->Id = IdCounter++;
 
-	SocketClient.AddMessageToQueue((Message*) &message, MessageType::ConnectionId);	
+	SocketClient.AddMessageToQueue((Message*)message, MessageType::ConnectionId);
 }
 
 void ConnectionIdMessage::Read(BinaryStream* stream, NetworkManager& manager)

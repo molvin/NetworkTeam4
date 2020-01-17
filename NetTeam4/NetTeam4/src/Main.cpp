@@ -1,8 +1,6 @@
 #include <cstdlib>
 #include "Networking/NetworkClient.h"
 #include "Networking/BinaryStream.hpp"
-#include "Test/TestMessage.h"
-#include "Test/OtherTestMessage.h"
 #include "Engine/Engine.h"
 #include "Game/Player.h"
 #include "Server.h"

@@ -31,10 +31,10 @@ void Client::Update(Player& player)
 	if (engGetKeyDown(Key::Escape))
 		engClose();
 
-	InputMessage message;
-	message.x = x;
-	message.y = y;
-	SocketClient.AddMessageToQueue((Message*)&message, MessageType::Input);
+	InputMessage* message = new InputMessage();
+	message->x = x;
+	message->y = y;
+	SocketClient.AddMessageToQueue((Message*)message, MessageType::Input);
 
 	SocketClient.SendData();
 	SocketClient.ReadData(*this);

@@ -3,7 +3,6 @@
 #include <errno.h>
 #include <mutex>
 #include "BinaryStream.hpp"
-#include "../Test/TestMessage.h"
 
 NetworkClient::NetworkClient(int port) : _thread([=] { Listen(); })
 {
@@ -119,6 +118,7 @@ void NetworkClient::SendData()
 		//write message and add size
 		size += message->Write(&stream);
 
+		delete(message);
 		_messageQueue.pop();
 	}
 	if (size == 0)

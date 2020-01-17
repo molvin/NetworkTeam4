@@ -160,10 +160,8 @@
     <ClCompile Include="src\Server.cpp" />
     <ClCompile Include="src\Game\Player.cpp" />
     <ClCompile Include="src\Engine\Engine.cpp" />
-    <ClCompile Include="src\Test\OtherTestMessage.cpp" />
     <ClCompile Include="src\Networking\NetworkClient.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\Test\TestMessage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Client.h" />
@@ -172,11 +170,9 @@
     <ClInclude Include="src\Game\Player.h" />
     <ClInclude Include="src\Engine\Engine.h" />
     <ClInclude Include="src\Engine\Key.h" />
-    <ClInclude Include="src\Test\OtherTestMessage.h" />
     <ClInclude Include="src\Networking\Message.h" />
     <ClInclude Include="src\Networking\BinaryStream.hpp" />
     <ClInclude Include="src\Networking\NetworkClient.h" />
-    <ClInclude Include="src\Test\TestMessage.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
