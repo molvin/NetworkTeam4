@@ -6,6 +6,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <mutex>
+#include <functional>
 #include "../NetworkManager.h"
 
 enum class MessageType : unsigned char
@@ -14,7 +15,8 @@ enum class MessageType : unsigned char
 	   OtherTest,
 	   Player,
 	   Join,
-	   Input
+	   Input,
+	   ConnectionId
 };
 struct Connection
 {
@@ -36,6 +38,8 @@ public:
 	void RegisterMessage(Message* message, MessageType type);
 	void Join(std::string ip, int port);
 	void Host();
+
+	std::function<void(void)> OnConnection;
 
 private:
 	void Listen();

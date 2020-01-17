@@ -56,8 +56,8 @@ void NetworkClient::Listen()
 		if (receiveResult == -1)
 		{
 			int error = WSAGetLastError();
-			printf("Listen Error: %d\n", error);	
-			return;
+			printf("Listen Er ror: %d\n", error);	
+			continue;
 		}
 
 		std::string ip = inet_ntoa(sender.sin_addr);
@@ -73,9 +73,12 @@ void NetworkClient::Listen()
 				int port = stream.Read<int>();
 				_connections[ip] = Connection{ ip, port };
 				printf("Added new connection %s, %d\n", ip.c_str(), port);
-				return;
+				OnConnection();
+				continue;
 			}
+			printf("Received unexpected message from client\n");
 		}
+
 		BinaryStream stream;
 
 		for (int i = 0; i < receiveResult; i++){
@@ -137,7 +140,7 @@ void NetworkClient::SendData()
 		}
 		else
 		{
-			printf("Sent %d bytes to %s, with port %d\n", size, it.second.Ip.c_str(), it.second.Port);
+			//printf("Sent %d bytes to %s, with port %d\n", size, it.second.Ip.c_str(), it.second.Port);
 		}
 	}
 }
@@ -152,7 +155,6 @@ void NetworkClient::ReadData(NetworkManager& manager)
 		while (!stream.EndOfStream())
 		{
 			byte typeByte = stream.Read<byte>();
-			printf("Type: %d\n", typeByte);
 			_messages[(MessageType)typeByte]->Read(&stream, manager);
 		}
 		_streams.pop();

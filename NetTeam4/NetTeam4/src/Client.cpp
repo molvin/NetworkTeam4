@@ -8,6 +8,7 @@ Client::Client() : SocketClient(60000)
 {
 	SocketClient.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
 	SocketClient.RegisterMessage((Message*)new InputMessage(), MessageType::Input);
+	SocketClient.RegisterMessage((Message*)new ConnectionIdMessage(), MessageType::ConnectionId);
 }
 
 void Client::Join(const std::string& ip, const int port)
@@ -53,6 +54,5 @@ int InputMessage::Write(BinaryStream* stream)
 {
 	stream->Write(x);
 	stream->Write(y);
-	printf("Writing input message: x: %d, y:%d\n", x, y);
 	return sizeof(int) * 2;
 }
