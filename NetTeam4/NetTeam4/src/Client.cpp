@@ -9,6 +9,8 @@ Client::Client() : SocketClient(60000)
 	SocketClient.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
 	SocketClient.RegisterMessage((Message*)new InputMessage(), MessageType::Input);
 	SocketClient.RegisterMessage((Message*)new ConnectionIdMessage(), MessageType::ConnectionId);
+	SocketClient.RegisterMessage((Message*)new SpawnPlayerMessage(), MessageType::PlayerSpawnMessage);
+
 }
 
 void Client::Join(const std::string& ip, const int port)

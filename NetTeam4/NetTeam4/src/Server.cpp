@@ -9,6 +9,7 @@ Server::Server() : SocketClient(50000)
 	SocketClient.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
 	SocketClient.RegisterMessage((Message*)new InputMessage(), MessageType::Input);
 	SocketClient.RegisterMessage((Message*)new ConnectionIdMessage(), MessageType::ConnectionId);
+	SocketClient.RegisterMessage((Message*)new SpawnPlayerMessage(), MessageType::PlayerSpawnMessage);
 
 	SocketClient.Host();
 

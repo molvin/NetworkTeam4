@@ -128,10 +128,8 @@ void NetworkClient::SendData(std::string ip)
 
 	for (auto it : _connections)	
 	{
-		printf("%s %s", it.second.Ip.c_str(), ip.c_str());
 		if (ip != "")
 		{
-			printf("Sending only to: %s", ip.c_str());
 			if(it.second.Ip != ip)
 				continue;
 		}
