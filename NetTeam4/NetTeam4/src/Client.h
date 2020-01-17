@@ -10,6 +10,7 @@ public:
 	void Update(Player& player);
 
 	NetworkClient SocketClient;
+	InputMessage message;
 };
 
 class InputMessage : Message
