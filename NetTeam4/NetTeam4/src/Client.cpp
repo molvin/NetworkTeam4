@@ -35,8 +35,8 @@ void Client::Update(Player& player)
 	message.y = y;
 	SocketClient.AddMessageToQueue((Message*)&message, MessageType::Input);
 
-	SocketClient.ReadData(*this);
 	SocketClient.SendData();
+	SocketClient.ReadData(*this);
 }
 
 void InputMessage::Read(BinaryStream* stream, NetworkManager& manager)
@@ -53,5 +53,6 @@ int InputMessage::Write(BinaryStream* stream)
 {
 	stream->Write(x);
 	stream->Write(y);
-	return 0;
+	printf("Writing input message: x: %d, y:%d\n", x, y);
+	return sizeof(int) * 2;
 }

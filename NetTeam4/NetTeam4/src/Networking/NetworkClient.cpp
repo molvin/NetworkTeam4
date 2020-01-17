@@ -137,7 +137,7 @@ void NetworkClient::SendData()
 		}
 		else
 		{
-			//printf("Sent %d bytes to %s, with port %d\n", size, it.second.Ip.c_str(), it.second.Port);
+			printf("Sent %d bytes to %s, with port %d\n", size, it.second.Ip.c_str(), it.second.Port);
 		}
 	}
 }
