@@ -20,7 +20,15 @@ void Server::Update()
 	if (engGetKeyDown(Key::Escape))
 		engClose();
 
-	//SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
+	for (auto it : _players)
+	{
+		PlayerMessage* playerMessage = new PlayerMessage();
+		playerMessage->Id = it.first;
+		playerMessage->x = it.second.x;
+		playerMessage->y = it.second.y;
+		SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
+	}
+
 	
 	SocketClient.ReadData(*this);
 	SocketClient.SendData();
@@ -28,7 +36,10 @@ void Server::Update()
 
 void Server::UpdatePlayer(int id, int x, int y)
 {
-
+	if (_players.find(id) == _players.end())
+		return;
+	_players[id].x += x;
+	_players[id].y += y;
 }
 
 void Server::OnConnect(std::string ip)

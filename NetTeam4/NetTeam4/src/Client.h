@@ -1,6 +1,7 @@
 #pragma once
 #include "Networking/NetworkClient.h"
 #include "Game/Player.h"
+#include <map>
 
 class InputMessage : Message
 {
@@ -19,8 +20,9 @@ public:
 	void Join(const std::string& ip, const int port);
 	void Update();
 	void AddNewPlayer(int ownerId, int x, int y);
+	void UpdatePlayer(int ownerId, int x, int y);
 
 	NetworkClient SocketClient;
-	std::unordered_map<int, Player> _players;
+	std::map<int, Player> _players;
 };
 

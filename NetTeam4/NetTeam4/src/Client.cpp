@@ -55,7 +55,7 @@ void Client::Update()
 
 void Client::AddNewPlayer(int ownerId, int x, int y)
 {
-	if (_players.find(ownerId) == _players.end())
+	if (_players.find(ownerId) != _players.end())
 	{
 		return;
 	}
@@ -65,6 +65,17 @@ void Client::AddNewPlayer(int ownerId, int x, int y)
 	_players[ownerId].x = x;
 	_players[ownerId].y = y;
 	_players[ownerId].w = _players[ownerId].h = 50;
+}
+
+void Client::UpdatePlayer(int ownerId, int x, int y)
+{
+	if (_players.find(ownerId) == _players.end())
+	{
+		return;
+	}
+
+	_players[ownerId].x = x;
+	_players[ownerId].y = y;
 }
 
 void InputMessage::Read(BinaryStream* stream, NetworkManager& manager)
