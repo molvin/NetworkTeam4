@@ -8,6 +8,7 @@ Client::Client() : SocketClient(60000)
 {
 	SocketClient.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
 	SocketClient.RegisterMessage((Message*)new InputMessage(), MessageType::Input);
+	message = new InputMessage();
 }
 
 void Client::Join(const std::string& ip, const int port)
@@ -30,8 +31,8 @@ void Client::Update(Player& player)
 	if (engGetKeyDown(Key::Escape))
 		engClose();
 
-	message.x = x;
-	message.y = y;
+	message->x = x;
+	message->y = y;
 	SocketClient.AddMessageToQueue((Message*)&message, MessageType::Input);
 
 	SocketClient.ReadData(*this);
