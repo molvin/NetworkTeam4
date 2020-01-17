@@ -50,33 +50,43 @@ void NetworkClient::Listen()
 		sockaddr_in sender;
 		int size = sizeof(sender);
 		int receiveResult = recvfrom(_socket, buffer, 65507, 0, (SOCKADDR*)&sender, &size);
-		//Receive result is 0 on close, negative on error, otherwise the size of received buffer§
+		//Receive result is 0 on close, negative on error, otherwise the size of received buffer
 
 		if (receiveResult == -1)
 		{
 			int error = WSAGetLastError();
-			printf("Listen Error: %d\n", error);				
+			printf("Listen Error: %d\n", error);	
+			return;
 		}
-		else
+
+		std::string ip = inet_ntoa(sender.sin_addr);
+		if (_hosting && _connections.find(ip) == _connections.end())
 		{
-			printf("Received %d bytes \n", receiveResult);
-			printf("%.*s\n", receiveResult, buffer);
-
-			BinaryStream stream;			
-
-			for(int i = 0; i < receiveResult; i++)
+			//Check if host should add known connection
+			if (receiveResult == 1 && buffer[0] == (unsigned char)MessageType::Join)
 			{
-				stream.Buffer.push_back(buffer[i]);
+				_connections[ip] = Connection{ ip, sender.sin_port };
+				printf("Added new connection %s, %d\n", ip, sender.sin_port);
+				return;
 			}
-
-			while (!stream.EndOfStream())
-			{
-				byte typeByte = stream.Read<byte>();
-				printf("Type: %d\n", typeByte);
-				_messages[(MessageType)typeByte]->Read(&stream);							
-			}
-			
 		}
+
+		printf("Received %d bytes \n", receiveResult);
+		printf("%.*s\n", receiveResult, buffer);
+
+		BinaryStream stream;
+
+		for (int i = 0; i < receiveResult; i++){
+			stream.Buffer.push_back(buffer[i]);
+		}
+
+		while (!stream.EndOfStream()){
+			byte typeByte = stream.Read<byte>();
+			printf("Type: %d\n", typeByte);
+			_messages[(MessageType)typeByte]->Read(&stream);
+		}
+			
+		
 	}
 	printf("Closing thread");
 }
@@ -106,16 +116,18 @@ void NetworkClient::SendData()
 		return;
 	}
 
-	sockaddr_in RecvAddr;
-	RecvAddr.sin_family = AF_INET;
-	RecvAddr.sin_port = htons(_port);
-	RecvAddr.sin_addr.s_addr = inet_addr("10.20.2.24");
-
-	int result = sendto(_socket, (const char*)&stream.Buffer[0], size, 0, (SOCKADDR*)&RecvAddr, sizeof(RecvAddr));
-	if (result == -1)
+	for (auto it : _connections)	
 	{
-		int error = WSAGetLastError();
-		printf("Send Error: %d\n", error);
+		sockaddr_in recvAddr;
+		recvAddr.sin_family = AF_INET;
+		recvAddr.sin_port = htons(it.second.Port);
+		recvAddr.sin_addr.s_addr = inet_addr(it.second.Ip.c_str());
+
+		int result = sendto(_socket, (const char*)&stream.Buffer[0], size, 0, (SOCKADDR*)&recvAddr, sizeof(recvAddr));
+		if (result == -1){
+			int error = WSAGetLastError();
+			printf("Send Error: %d\n", error);
+		}
 	}
 }
 
@@ -128,6 +140,24 @@ void NetworkClient::RegisterMessage(Message* message, MessageType type)
 {
 	//TODO: copy and make our own message, to ensure it is not destroyed
 	_messages[type] = message;
+}
+
+void NetworkClient::Join(std::string ip, int port)
+{
+	_hosting = false;
+	_connections[ip] = Connection{ ip, port };
+	byte send[] = { (byte)MessageType::Join };
+
+	sockaddr_in RecvAddr;
+	RecvAddr.sin_family = AF_INET;
+	RecvAddr.sin_port = htons(port);
+	RecvAddr.sin_addr.s_addr = inet_addr(ip.c_str());
+	int result = sendto(_socket, (const char*)&send, 1, 0, (SOCKADDR*)&RecvAddr, sizeof(RecvAddr));
+}
+
+void NetworkClient::Host()
+{
+	_hosting = true;
 }
 
 void NetworkClient::Close()

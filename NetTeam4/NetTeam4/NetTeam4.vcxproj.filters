@@ -21,9 +21,6 @@
     <ClCompile Include="src\Networking\NetworkClient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Networking\Message.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Test\TestMessage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

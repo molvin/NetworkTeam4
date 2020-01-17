@@ -7,32 +7,46 @@
 #include "Game/Player.h"
 #undef main
 
+void InitClient(NetworkClient& client)
+{
+	client.Join("10.20.3.132", 50000);
+}
+void InitServer(NetworkClient& server)
+{
+	server.Host();
+}
+
+void UpdateClient(NetworkClient& client)
+{
+	
+}
+void UpdateServer(NetworkClient& server, Player& player)
+{
+
+	PlayerMessage playerMessage;
+	playerMessage.x = player.x;
+	playerMessage.y = player.y;
+	server.AddMessageToQueue((Message*)&playerMessage, MessageType::Player);
+
+	server.SendData();
+}
+
+
 int main()
 {	
 	engineInit();
 
-	TestMessage message0;
-	message0.TestInt = 12;
-	OtherTestMessage message1;
-	message1.Value = 3.14f;
-
-	TestMessage* reg = new TestMessage();
-	OtherTestMessage* regother = new OtherTestMessage();
-
 	NetworkClient client(50000);
-	NetworkClient server(60000);
 
-	server.RegisterMessage((Message*)reg, MessageType::Test);
-	client.RegisterMessage((Message*)reg, MessageType::Test);
-	server.RegisterMessage((Message*)regother, MessageType::OtherTest);
-	client.RegisterMessage((Message*)regother, MessageType::OtherTest);
-	server.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
+	//InitClient(client);
+	InitServer(client);
+
+
 	client.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
-
+	
 
 	Player player{ 0, 0, 50, 50 };
 	PlayerMessage::player = &player;
-
 	
 	while(engIsOpen())
 	{
@@ -48,18 +62,13 @@ int main()
 			player.x -= 1;
 		if (engGetKey(Key::D))
 			player.x += 1;
-		//server.AddMessageToQueue((Message*)&message0, MessageType::Test);
-		//server.AddMessageToQueue((Message*)&message1, MessageType::OtherTest);
-		PlayerMessage playerMessage;
-		playerMessage.x = player.x;
-		playerMessage.y = player.y;
-		server.AddMessageToQueue((Message*)&playerMessage, MessageType::Player);
+
 		
-		server.SendData();
+		//UpdateClient(temp);
+		UpdateServer(client, player);
 	}
 	
 	client.Close();	
-	server.Close();
 
 	return 0;
 }
