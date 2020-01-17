@@ -5,6 +5,7 @@
 #include <queue>
 #include <tuple>
 #include <unordered_map>
+#include <mutex>
 
 enum class MessageType : unsigned char
 {
