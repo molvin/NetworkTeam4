@@ -64,25 +64,14 @@ int main()
 
 		//Player update
 		engDrawRect(player.x, player.y, player.w, player.h);
-		if (engGetKey(Key::W))
-			player.y -= 1;			
-		if (engGetKey(Key::S))
-			player.y += 1;
-		if (engGetKey(Key::A))
-			player.x -= 1;
-		if (engGetKey(Key::D))
-			player.x += 1;
-
-		if (engGetKeyDown(Key::Escape))
-			engClose();
 
 		if (SERVER)
 		{
-			server->Update();
+			server->Update(player);
 		}
 		else
 		{
-			client->Update();
+			client->Update(player);
 		}
 	}
 	

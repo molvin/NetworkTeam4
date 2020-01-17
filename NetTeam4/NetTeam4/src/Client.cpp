@@ -11,7 +11,7 @@ void Client::Join(const std::string& ip, const int port)
 	SocketClient.Join(ip, port);
 }
 
-void Client::Update()
+void Client::Update(Player& player)
 {
 	SocketClient.ReadData();
 	SocketClient.SendData();
