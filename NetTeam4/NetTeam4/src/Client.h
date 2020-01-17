@@ -18,6 +18,7 @@ public:
 	Client();
 	void Join(const std::string& ip, const int port);
 	void Update();
+	void AddNewPlayer(int ownerId, int x, int y);
 
 	NetworkClient SocketClient;
 	std::unordered_map<int, Player> _players;

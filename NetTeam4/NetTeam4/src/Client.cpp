@@ -53,6 +53,17 @@ void Client::Update()
 	SocketClient.ReadData(*this);
 }
 
+void Client::AddNewPlayer(int ownerId, int x, int y)
+{
+	if (_players.find(ownerId) == _players.end())
+		return;
+
+	_players[ownerId] = Player();
+	_players[ownerId].Id = ownerId;
+	_players[ownerId].x = x;
+	_players[ownerId].y = y;
+}
+
 void InputMessage::Read(BinaryStream* stream, NetworkManager& manager)
 {
 	id = stream->Read<int>();

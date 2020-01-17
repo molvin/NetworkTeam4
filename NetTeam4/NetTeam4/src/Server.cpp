@@ -78,6 +78,9 @@ void SpawnPlayerMessage::Read(BinaryStream* stream, NetworkManager& manager)
 	y = stream->Read<int>();
 
 	printf("Received player spawn message: id: %d, x: %d, y: %d\n", OwnerId, x, y);
+
+	Client& client = (Client&)manager;
+	client.AddNewPlayer(OwnerId, x, y);
 }
 
 int SpawnPlayerMessage::Write(BinaryStream* stream)
