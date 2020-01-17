@@ -25,35 +25,29 @@ int main()
 	if (SERVER)
 	{
 		server = new Server();
-		server->SocketClient.OnConnection = std::bind(&Server::OnConnect, server);
+		std::string s;
+		server->SocketClient.OnConnection = std::bind(&Server::OnConnect, server, s);
 	}
 	else
 	{
 		client = new Client();
 		client->Join("10.20.3.132", 50000);
-
 	}
 
 
-
-	Player player{ 0, 0, 50, 50 };
-	PlayerMessage::player = &player;
-	
 	while(engIsOpen())
 	{
 		engineUpdate();
 
-		//Player update
-		engDrawRect(player.x, player.y, player.w, player.h);
-
 		if (SERVER)
 		{
-			server->Update(player);
+			server->Update();
 		}
 		else
 		{
-			client->Update(player);
+			client->Update();
 		}
+
 	}
 	
 	if(SERVER)

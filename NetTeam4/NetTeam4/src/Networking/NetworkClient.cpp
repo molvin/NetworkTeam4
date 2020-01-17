@@ -55,7 +55,7 @@ void NetworkClient::Listen()
 		if (receiveResult == -1)
 		{
 			int error = WSAGetLastError();
-			printf("Listen Er ror: %d\n", error);	
+			printf("Listen Error: %d\n", error);	
 			continue;
 		}
 
@@ -72,7 +72,7 @@ void NetworkClient::Listen()
 				int port = stream.Read<int>();
 				_connections[ip] = Connection{ ip, port };
 				printf("Added new connection %s, %d\n", ip.c_str(), port);
-				OnConnection();
+				OnConnection(ip);
 				continue;
 			}
 			printf("Received unexpected message from client\n");
@@ -100,7 +100,7 @@ void NetworkClient::Listen()
 	printf("Closing thread");
 }
 
-void NetworkClient::SendData()
+void NetworkClient::SendData(std::string ip)
 {
 	BinaryStream stream;
 	int size = 0;
@@ -128,6 +128,11 @@ void NetworkClient::SendData()
 
 	for (auto it : _connections)	
 	{
+		if (ip != "" && it.second.Ip != ip)
+		{
+			continue;
+		}
+
 		sockaddr_in recvAddr;
 		recvAddr.sin_family = AF_INET;
 		recvAddr.sin_port = htons(it.second.Port);

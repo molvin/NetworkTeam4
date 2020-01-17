@@ -8,12 +8,12 @@ class Server : NetworkManager
 public:
 	int IdCounter = 0;
 	Server();
-	void Update(Player& player);
-	void UpdatePlayer(int x, int y);
-	void OnConnect();
+	void Update();
+	void UpdatePlayer(int id, int x, int y);
+	void OnConnect(std::string ip);
 
 	NetworkClient SocketClient;
-	Player* player = nullptr;
+	std::unordered_map<int, Player> _players;
 };
 
 class ConnectionIdMessage : Message
@@ -25,5 +25,15 @@ public:
 
 	virtual int Write(BinaryStream* stream) override;
 
+};
+
+class SpawnPlayerMessage : Message
+{
+	int OwnerId;
+	int x, y;
+
+	virtual void Read(BinaryStream* stream, NetworkManager& manager) override;
+
+	virtual int Write(BinaryStream* stream) override;
 };
 

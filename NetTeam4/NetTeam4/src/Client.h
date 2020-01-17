@@ -5,7 +5,7 @@
 class InputMessage : Message
 {
 public:
-	int x, y;
+	int id, x, y;
 
 	virtual void Read(BinaryStream* stream, NetworkManager& manager) override;
 	virtual int Write(BinaryStream* stream) override;
@@ -17,8 +17,9 @@ public:
 	int Id = -1;
 	Client();
 	void Join(const std::string& ip, const int port);
-	void Update(Player& player);
+	void Update();
 
 	NetworkClient SocketClient;
+	std::unordered_map<int, Player> _players;
 };
 

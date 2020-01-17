@@ -14,36 +14,32 @@ Server::Server() : SocketClient(50000)
 
 }
 
-void Server::Update(Player& player)
+void Server::Update()
 {
-	this->player = &player;
-
 	if (engGetKeyDown(Key::Escape))
 		engClose();
-	
-	PlayerMessage* playerMessage = new PlayerMessage();
-	playerMessage->x = player.x;
-	playerMessage->y = player.y;
-	SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
+
+	//SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
 	
 	SocketClient.ReadData(*this);
 	SocketClient.SendData();
 }
 
-void Server::UpdatePlayer(int x, int y)
+void Server::UpdatePlayer(int id, int x, int y)
 {
-	player->x += x;
-	player->y += y;
+
 }
 
-void Server::OnConnect()
+void Server::OnConnect(std::string ip)
 {
 	printf("Connected\n");
 	//TODO: give id to connection, spawn a player for connection
 	ConnectionIdMessage* message = new ConnectionIdMessage();
 	message->Id = IdCounter++;
 
+	SocketClient.SendData();
 	SocketClient.AddMessageToQueue((Message*)message, MessageType::ConnectionId);
+	SocketClient.SendData(ip);
 }
 
 void ConnectionIdMessage::Read(BinaryStream* stream, NetworkManager& manager)
@@ -58,4 +54,13 @@ int ConnectionIdMessage::Write(BinaryStream* stream)
 {
 	stream->Write<int>(Id);
 	return sizeof(int);
+}
+
+void SpawnPlayerMessage::Read(BinaryStream* stream, NetworkManager& manager)
+{
+}
+
+int SpawnPlayerMessage::Write(BinaryStream* stream)
+{
+	return 0;
 }

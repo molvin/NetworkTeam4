@@ -32,14 +32,14 @@ public:
 	NetworkClient(int port);
 	~NetworkClient();
 	void Close();
-	void SendData();
+	void SendData(std::string ip = "");
 	void ReadData(NetworkManager& manager);
 	void AddMessageToQueue(Message* message, MessageType type);
 	void RegisterMessage(Message* message, MessageType type);
 	void Join(std::string ip, int port);
 	void Host();
 
-	std::function<void(void)> OnConnection;
+	std::function<void(std::string)> OnConnection;
 
 private:
 	void Listen();
