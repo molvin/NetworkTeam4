@@ -1,6 +1,7 @@
 #include "NetworkClient.h"
 #include <iostream>
 #include <errno.h>
+#include <mutex>
 #include "BinaryStream.hpp"
 #include "../Test/TestMessage.h"
 
@@ -80,12 +81,17 @@ void NetworkClient::Listen()
 		for (int i = 0; i < receiveResult; i++){
 			stream.Buffer.push_back(buffer[i]);
 		}
-
+		
+		_lock.lock();
+		_streams.push(stream);
+		_lock.unlock();
+		/*
 		while (!stream.EndOfStream()){
 			byte typeByte = stream.Read<byte>();
 			printf("Type: %d\n", typeByte);
 			_messages[(MessageType)typeByte]->Read(&stream);
 		}
+		*/
 			
 		
 	}
@@ -134,6 +140,25 @@ void NetworkClient::SendData()
 			//printf("Sent %d bytes to %s, with port %d\n", size, it.second.Ip.c_str(), it.second.Port);
 		}
 	}
+}
+
+void NetworkClient::ReadData()
+{
+	_lock.lock();
+
+	while (!_streams.empty())
+	{
+		BinaryStream stream = _streams.front();
+		while (!stream.EndOfStream())
+		{
+			byte typeByte = stream.Read<byte>();
+			printf("Type: %d\n", typeByte);
+			_messages[(MessageType)typeByte]->Read(&stream);
+		}
+		_streams.pop();
+	}
+
+	_lock.unlock();
 }
 
 void NetworkClient::AddMessageToQueue(Message* message, MessageType type)

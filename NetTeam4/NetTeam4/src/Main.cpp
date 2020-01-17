@@ -18,7 +18,7 @@ void InitServer(NetworkClient& server)
 
 void UpdateClient(NetworkClient& client)
 {
-	
+	client.ReadData();
 }
 void UpdateServer(NetworkClient& server, Player& player)
 {
@@ -41,9 +41,7 @@ int main()
 	InitServer(client);
 	//InitClient(client);
 
-
 	client.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
-	
 
 	Player player{ 0, 0, 50, 50 };
 	PlayerMessage::player = &player;

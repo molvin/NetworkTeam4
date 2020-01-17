@@ -156,6 +156,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Client.cpp" />
+    <ClCompile Include="src\Server.cpp" />
     <ClCompile Include="src\Game\Player.cpp" />
     <ClCompile Include="src\Engine\Engine.cpp" />
     <ClCompile Include="src\Test\OtherTestMessage.cpp" />
@@ -164,6 +166,8 @@
     <ClCompile Include="src\Test\TestMessage.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Client.h" />
+    <ClInclude Include="src\Server.h" />
     <ClInclude Include="src\Game\Player.h" />
     <ClInclude Include="src\Engine\Engine.h" />
     <ClInclude Include="src\Engine\Key.h" />

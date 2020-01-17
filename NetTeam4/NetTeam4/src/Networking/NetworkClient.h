@@ -23,10 +23,12 @@ struct Connection
 class NetworkClient
 {
 public:
+	NetworkClient() = default;
 	NetworkClient(int port);
 	~NetworkClient();
 	void Close();
 	void SendData();
+	void ReadData();
 	void AddMessageToQueue(Message* message, MessageType type);
 	void RegisterMessage(Message* message, MessageType type);
 	void Join(std::string ip, int port);
@@ -42,6 +44,8 @@ private:
 	int _port;
 	bool _closeThread = false;
 	bool _hosting = false;
+	std::queue<BinaryStream> _streams;
+	std::mutex _lock;
 	std::unordered_map<MessageType, Message*> _messages;
 	std::unordered_map<std::string, Connection> _connections;
 };
