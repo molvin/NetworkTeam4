@@ -56,12 +56,15 @@ void Client::Update()
 void Client::AddNewPlayer(int ownerId, int x, int y)
 {
 	if (_players.find(ownerId) == _players.end())
+	{
 		return;
+	}
 
 	_players[ownerId] = Player();
 	_players[ownerId].Id = ownerId;
 	_players[ownerId].x = x;
 	_players[ownerId].y = y;
+	_players[ownerId].w = _players[ownerId].h = 50;
 }
 
 void InputMessage::Read(BinaryStream* stream, NetworkManager& manager)
