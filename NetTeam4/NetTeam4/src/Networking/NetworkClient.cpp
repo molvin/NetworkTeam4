@@ -63,7 +63,7 @@ void NetworkClient::Listen()
 		if (_hosting && _connections.find(ip) == _connections.end())
 		{
 			//Check if host should add known connection
-			if (receiveResult == 1 && buffer[0] == (unsigned char)MessageType::Join)
+			if (receiveResult == 5 && buffer[0] == (unsigned char)MessageType::Join)
 			{
 				BinaryStream stream;
 				for (int i = 0; i < receiveResult; i++)
@@ -75,10 +75,6 @@ void NetworkClient::Listen()
 				return;
 			}
 		}
-
-		printf("Received %d bytes \n", receiveResult);
-		printf("%.*s\n", receiveResult, buffer);
-
 		BinaryStream stream;
 
 		for (int i = 0; i < receiveResult; i++){
@@ -135,7 +131,7 @@ void NetworkClient::SendData()
 		}
 		else
 		{
-			printf("Sent %d bytes to %s, with port %d\n", size, it.second.Ip.c_str(), it.second.Port);
+			//printf("Sent %d bytes to %s, with port %d\n", size, it.second.Ip.c_str(), it.second.Port);
 		}
 	}
 }
@@ -157,7 +153,7 @@ void NetworkClient::Join(std::string ip, int port)
 	_connections[ip] = Connection{ ip, port };
 	BinaryStream stream;
 	stream.Write<byte>((byte)MessageType::Join);
-	stream.Write<int>(port);
+	stream.Write<int>(_port);
 
 	sockaddr_in RecvAddr;
 	RecvAddr.sin_family = AF_INET;
