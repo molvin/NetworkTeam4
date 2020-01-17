@@ -10,7 +10,7 @@
 
 #undef main
 
-#define SERVER false
+#define SERVER true
 
 Server* server = nullptr;
 Client* client = nullptr;
