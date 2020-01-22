@@ -78,6 +78,11 @@ void engDrawRect(int X, int Y, int Width, int Height){
 	SDL_Rect rect = { X, Y, Width, Height };
 	SDL_RenderFillRect(Renderer, &rect);
 }
+void engDrawLine(int X, int Y, int X2, int Y2)
+{
+	SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
+	SDL_RenderDrawLine(Renderer, X, Y, X2, Y2);
+}
 
 // Input
 bool engGetKey(Key InKey)
