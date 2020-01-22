@@ -9,7 +9,7 @@ public:
 	int IdCounter = 0;
 	Server();
 	void Update();
-	void UpdatePlayer(int id, int x, int y);
+	void UpdatePlayer(int id, int x, int y, int frameId);
 	void OnConnect(std::string ip);
 
 	NetworkClient SocketClient;

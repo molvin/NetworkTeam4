@@ -23,20 +23,24 @@ void Server::Update()
 		playerMessage->Id = it.first;
 		playerMessage->x = it.second.x;
 		playerMessage->y = it.second.y;
+		playerMessage->frameId = it.second.LastProcessedServerFrame;
 		SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
 	}
 	
+	printf("Sleep\n");
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	printf("Sending\n");
 	SocketClient.ReadData(*this);
 	SocketClient.SendData();
 }
 
-void Server::UpdatePlayer(int id, int x, int y)
+void Server::UpdatePlayer(int id, int x, int y, int frameId)
 {
 	if (_players.find(id) == _players.end())
 		return;
 	_players[id].x += x;
 	_players[id].y += y;
+	_players[id].LastProcessedServerFrame = frameId;
 }
 
 void Server::OnConnect(std::string ip)

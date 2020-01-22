@@ -41,24 +41,16 @@ void Client::Update()
 		//Temp player movement
 		_players[Id].x += x;
 		_players[Id].y += y;
-		_frames.push(InputFrame{ _players[Id].x, _players[Id].y, InputFrame::frameCounter++ });
+		_frames.push(InputFrame{ _players[Id].x, _players[Id].y, InputFrame::frameCounter });
 		//Error correction
-		int correction = (int)std::ceil((float)error_x * 0.6f);
-		error_x -= correction;
-		if (error_x < 0)
-			error_x = 0;
-		_players[Id].x += correction;
-		correction = (int)std::ceil((float)error_y * 0.6f);
-		error_y -= correction;
-		if (error_y < 0)
-			error_y = 0;
-		_players[Id].y += correction;
 				
 		InputMessage* message = new InputMessage();
 		message->id = Id;
 		message->x = x;
 		message->y = y;
+		message->frameId = InputFrame::frameCounter;
 		SocketClient.AddMessageToQueue((Message*)message, MessageType::Input);
+		InputFrame::frameCounter++;
 	}
 
 	for (auto it : _players)
@@ -105,8 +97,8 @@ void Client::UpdatePlayer(int ownerId, int x, int y, int frameId)
 	}
 
 	InputFrame frame = _frames.front();
-	error_x = frame.x - x;
-	error_y = frame.y - y;
+	error_x = x - frame.x;
+	error_y = y - frame.y;
 	//_players[ownerId].x = x;
 	//_players[ownerId].y = y;
 }
@@ -116,10 +108,11 @@ void InputMessage::Read(BinaryStream* stream, NetworkManager& manager)
 	id = stream->Read<int>();
 	x = stream->Read<int>();
 	y = stream->Read<int>();
+	frameId = stream->Read<int>();
 
 	//Reading on the server
 	Server& server = (Server&)manager;
-	server.UpdatePlayer(id, x, y);	
+	server.UpdatePlayer(id, x, y, frameId);	
 }
 
 int InputMessage::Write(BinaryStream* stream)
@@ -127,5 +120,6 @@ int InputMessage::Write(BinaryStream* stream)
 	stream->Write<int>(id);
 	stream->Write<int>(x);
 	stream->Write<int>(y);
-	return sizeof(int) * 3;
+	stream->Write<int>(frameId);
+	return sizeof(int) * 4;
 }

@@ -14,7 +14,7 @@ struct InputFrame
 class InputMessage : Message
 {
 public:
-	int id, x, y;
+	int id, x, y, frameId;
 
 	virtual void Read(BinaryStream* stream, NetworkManager& manager) override;
 	virtual int Write(BinaryStream* stream) override;
