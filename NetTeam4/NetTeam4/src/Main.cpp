@@ -8,7 +8,7 @@
 
 #undef main
 
-#define SERVER true
+#define SERVER 1
 
 Server* server = nullptr;
 Client* client = nullptr;
@@ -20,7 +20,7 @@ void temp()
 
 int main()
 {	
-	engineInit();
+	//engineInit();
 
 	if (SERVER)
 	{
@@ -32,13 +32,12 @@ int main()
 	{
 		client = new Client();
 		client->Join("10.20.3.132", 50000);
+		engineInit();
 	}
 
 
-	while(engIsOpen())
+	while(true)
 	{
-		engineUpdate();
-
 		if (SERVER)
 		{
 			server->Update();
@@ -46,6 +45,8 @@ int main()
 		else
 		{
 			client->Update();
+			if (!engIsOpen())
+				break;
 		}
 
 	}

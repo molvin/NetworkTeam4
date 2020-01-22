@@ -20,8 +20,12 @@ void Client::Join(const std::string& ip, const int port)
 
 void Client::Update()
 {
+	engineUpdate();
+
 	if (_players.find(Id) != _players.end())
 	{
+		//Local player update
+
 		int x = 0, y = 0;
 		if (engGetKey(Key::W))
 			y -= 1;
@@ -31,7 +35,11 @@ void Client::Update()
 			x -= 1;
 		if (engGetKey(Key::D))
 			x += 1;
-
+		
+		//Temp player movement
+		_players[Id].x += x;
+		_players[Id].y += y;
+				
 		InputMessage* message = new InputMessage();
 		message->id = Id;
 		message->x = x;

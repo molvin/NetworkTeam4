@@ -70,9 +70,13 @@ void NetworkClient::Listen()
 					stream.Buffer.push_back(buffer[i]);
 				stream.Read<byte>();
 				int port = stream.Read<int>();
+				
+				_lock.lock();
 				_connections[ip] = Connection{ ip, port };
 				printf("Added new connection %s, %d\n", ip.c_str(), port);
 				OnConnection(ip);
+				_lock.unlock();
+				
 				continue;
 			}
 			printf("Received unexpected message from client\n");
@@ -83,7 +87,6 @@ void NetworkClient::Listen()
 		for (int i = 0; i < receiveResult; i++){
 			stream.Buffer.push_back(buffer[i]);
 		}
-		
 		_lock.lock();
 		_streams.push(stream);
 		_lock.unlock();

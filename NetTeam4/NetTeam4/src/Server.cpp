@@ -17,9 +17,6 @@ Server::Server() : SocketClient(50000)
 
 void Server::Update()
 {
-	if (engGetKeyDown(Key::Escape))
-		engClose();
-
 	for (auto it : _players)
 	{
 		PlayerMessage* playerMessage = new PlayerMessage();
@@ -28,8 +25,8 @@ void Server::Update()
 		playerMessage->y = it.second.y;
 		SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
 	}
-
 	
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	SocketClient.ReadData(*this);
 	SocketClient.SendData();
 }
