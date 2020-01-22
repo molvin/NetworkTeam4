@@ -15,6 +15,7 @@ public:
 	int Id;
 	int x;
 	int y;
+	int frameId;
 
 	virtual void Read(BinaryStream* stream, NetworkManager& manager) override;
 	virtual int Write(BinaryStream* stream) override;
