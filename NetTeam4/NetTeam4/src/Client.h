@@ -34,5 +34,6 @@ public:
 	std::queue<InputFrame> _frames;
 	float error_x;
 	float error_y;
+
 };
 

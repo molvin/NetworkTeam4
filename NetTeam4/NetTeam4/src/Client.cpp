@@ -12,7 +12,6 @@ Client::Client() : SocketClient(60000)
 	SocketClient.RegisterMessage((Message*)new InputMessage(), MessageType::Input);
 	SocketClient.RegisterMessage((Message*)new ConnectionIdMessage(), MessageType::ConnectionId);
 	SocketClient.RegisterMessage((Message*)new SpawnPlayerMessage(), MessageType::PlayerSpawnMessage);
-
 }
 
 void Client::Join(const std::string& ip, const int port)
@@ -22,6 +21,8 @@ void Client::Join(const std::string& ip, const int port)
 
 void Client::Update()
 {
+	SocketClient.SendData();
+	SocketClient.ReadData(*this);
 	engineUpdate();
 
 	if (_players.find(Id) != _players.end())
@@ -41,15 +42,6 @@ void Client::Update()
 		//Temp player movement
 		_players[Id].x += x;
 		_players[Id].y += y;
-		_frames.push(InputFrame{ _players[Id].x, _players[Id].y, InputFrame::frameCounter });
-		
-		//Error correction
-		float correction = error_x * 0.9f;
-		error_x *= 0.1f;
-		_players[Id].x += correction;
-		correction = error_y * 0.9f;
-		error_y *= 0.1f;
-		_players[Id].y += correction;
 
 		InputMessage* message = new InputMessage();
 		message->id = Id;
@@ -57,6 +49,16 @@ void Client::Update()
 		message->y = y;
 		message->frameId = InputFrame::frameCounter;
 		SocketClient.AddMessageToQueue((Message*)message, MessageType::Input);
+		engDrawLine(_players[Id].x, _players[Id].y, _players[Id].x + error_x, _players[Id].y + error_y);
+
+
+		//Error correction
+		_players[Id].x += error_x * 0.2f;
+		error_x *= 0.8f;
+		_players[Id].y += error_y * 0.2f;
+		error_y *= 0.8f;
+
+		_frames.push(InputFrame{ _players[Id].x, _players[Id].y, InputFrame::frameCounter });
 		InputFrame::frameCounter++;
 	}
 
@@ -65,13 +67,8 @@ void Client::Update()
 		engDrawRect(it.second.x, it.second.y, it.second.w, it.second.h);
 	}
 
-
 	if (engGetKeyDown(Key::Escape))
 		engClose();
-
-
-	SocketClient.SendData();
-	SocketClient.ReadData(*this);
 }
 
 void Client::AddNewPlayer(int ownerId, int x, int y)
@@ -97,10 +94,9 @@ void Client::UpdatePlayer(int ownerId, float x, float y, int frameId)
 
 	while (!_frames.empty())
 	{
-		if (_frames.front().frameId < frameId)
-			_frames.pop();
-		else
+		if (_frames.front().frameId >= frameId)
 			break;
+		_frames.pop();
 	}
 
 	if (_frames.empty())
@@ -108,17 +104,14 @@ void Client::UpdatePlayer(int ownerId, float x, float y, int frameId)
 		return;
 	}
 	
-	printf("Setting error\n");
 
 	InputFrame frame = _frames.front();
-	/*error_x = frame.x - x;
-	error_y = frame.y - y;*/
 
 	error_x = x - frame.x;
 	error_y = y - frame.y;
-	printf("Error X: %f, Y: %f\n", error_x, error_y);
-	//_players[ownerId].x = x;
-	//_players[ownerId].y = y;
+
+	//while (!_frames.empty())
+	//	_frames.pop();
 }
 
 void InputMessage::Read(BinaryStream* stream, NetworkManager& manager)
