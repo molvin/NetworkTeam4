@@ -5,7 +5,7 @@ class Player
 {
 public:
 	int Id;
-	int x, y, w, h;
+	float x, y, w, h;
 	int LastProcessedServerFrame;
 
 };

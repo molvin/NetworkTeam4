@@ -5,8 +5,7 @@
 
 struct InputFrame
 {
-	int x;
-	int y;
+	float x, y;
 	int frameId;
 	static int frameCounter;
 };
@@ -33,7 +32,7 @@ public:
 	NetworkClient SocketClient;
 	std::map<int, Player> _players;
 	std::queue<InputFrame> _frames;
-	int error_x;
-	int error_y;
+	float error_x;
+	float error_y;
 };
 

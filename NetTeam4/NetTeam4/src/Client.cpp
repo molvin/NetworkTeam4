@@ -42,8 +42,15 @@ void Client::Update()
 		_players[Id].x += x;
 		_players[Id].y += y;
 		_frames.push(InputFrame{ _players[Id].x, _players[Id].y, InputFrame::frameCounter });
+		
 		//Error correction
-				
+		float correction = error_x * 0.9f;
+		error_x *= 0.1f;
+		_players[Id].x += correction;
+		correction = error_y * 0.9f;
+		error_y *= 0.1f;
+		_players[Id].y += correction;
+
 		InputMessage* message = new InputMessage();
 		message->id = Id;
 		message->x = x;
@@ -96,9 +103,20 @@ void Client::UpdatePlayer(int ownerId, int x, int y, int frameId)
 			break;
 	}
 
+	if (_frames.empty())
+	{
+		return;
+	}
+
+	printf("Setting error\n");
+
 	InputFrame frame = _frames.front();
+	/*error_x = frame.x - x;
+	error_y = frame.y - y;*/
+
 	error_x = x - frame.x;
 	error_y = y - frame.y;
+	printf("Error X: %f, Y: %f\n", error_x, error_y);
 	//_players[ownerId].x = x;
 	//_players[ownerId].y = y;
 }
