@@ -27,9 +27,7 @@ void Server::Update()
 		SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
 	}
 	
-	printf("Sleep\n");
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	printf("Sending\n");
 	SocketClient.ReadData(*this);
 	SocketClient.SendData();
 }
@@ -38,6 +36,10 @@ void Server::UpdatePlayer(int id, int x, int y, int frameId)
 {
 	if (_players.find(id) == _players.end())
 		return;
+
+	if ((std::rand() % 100) < 30)
+		return;
+
 	_players[id].x += x;
 	_players[id].y += y;
 	_players[id].LastProcessedServerFrame = frameId;

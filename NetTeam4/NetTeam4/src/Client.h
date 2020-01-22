@@ -27,7 +27,7 @@ public:
 	void Join(const std::string& ip, const int port);
 	void Update();
 	void AddNewPlayer(int ownerId, int x, int y);
-	void UpdatePlayer(int ownerId, int x, int y, int frameId);
+	void UpdatePlayer(int ownerId, float x, float y, int frameId);
 
 	NetworkClient SocketClient;
 	std::map<int, Player> _players;

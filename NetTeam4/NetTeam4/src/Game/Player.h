@@ -14,8 +14,8 @@ class PlayerMessage : Message
 {
 public:
 	int Id;
-	int x;
-	int y;
+	float x;
+	float y;
 	int frameId;
 
 	virtual void Read(BinaryStream* stream, NetworkManager& manager) override;

@@ -8,7 +8,7 @@
 
 #undef main
 
-#define SERVER 0
+#define SERVER 1
 
 Server* server = nullptr;
 Client* client = nullptr;

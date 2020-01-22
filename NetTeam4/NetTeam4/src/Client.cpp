@@ -88,7 +88,7 @@ void Client::AddNewPlayer(int ownerId, int x, int y)
 	_players[ownerId].w = _players[ownerId].h = 50;
 }
 
-void Client::UpdatePlayer(int ownerId, int x, int y, int frameId)
+void Client::UpdatePlayer(int ownerId, float x, float y, int frameId)
 {
 	if (_players.find(ownerId) == _players.end())
 	{
@@ -107,7 +107,7 @@ void Client::UpdatePlayer(int ownerId, int x, int y, int frameId)
 	{
 		return;
 	}
-
+	
 	printf("Setting error\n");
 
 	InputFrame frame = _frames.front();
