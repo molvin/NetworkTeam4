@@ -4,10 +4,11 @@
 #include "Engine/Engine.h"
 #include "Engine/Key.h"
 
-int InputFrame::frameCounter = 0;
+int InputFrame::FrameCounter = 0;
 
 Client::Client() : SocketClient(60000)
 {
+	//Register all Client messages
 	SocketClient.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
 	SocketClient.RegisterMessage((Message*)new InputMessage(), MessageType::Input);
 	SocketClient.RegisterMessage((Message*)new ConnectionIdMessage(), MessageType::ConnectionId);
@@ -21,10 +22,12 @@ void Client::Join(const std::string& ip, const int port)
 
 void Client::Update()
 {
-	SocketClient.SendData();
-	SocketClient.ReadData(*this);
+	//Update engine
 	engineUpdate();
+	if (engGetKeyDown(Key::Escape))
+		engClose();
 
+	//Update local player
 	if (_players.find(Id) != _players.end())
 	{
 		//Local player update
@@ -38,63 +41,69 @@ void Client::Update()
 			x -= 1;
 		if (engGetKey(Key::D))
 			x += 1;
-		
-		//Temp player movement
-		_players[Id].x += x;
-		_players[Id].y += y;
 
-		InputMessage* message = new InputMessage();
-		message->id = Id;
-		message->x = x;
-		message->y = y;
-		message->frameId = InputFrame::frameCounter;
-		SocketClient.AddMessageToQueue((Message*)message, MessageType::Input);
-		engDrawLine(_players[Id].x, _players[Id].y, _players[Id].x + error_x, _players[Id].y + error_y);
+		_players[Id].Update(x, y);
 
+		InputMessage* message = new InputMessage(Id, x, y, InputFrame::FrameCounter);
+		SocketClient.AddMessageToQueue((Message*)(message), MessageType::Input);
 
 		//Error correction
-		_players[Id].x += error_x * 0.2f;
-		error_x *= 0.8f;
-		_players[Id].y += error_y * 0.2f;
-		error_y *= 0.8f;
+		_players[Id].X += ErrorX * 0.2f;
+		ErrorX *= 0.8f;
+		_players[Id].Y += ErrorY * 0.2f;
+		ErrorY *= 0.8f;
 
-		_frames.push(InputFrame{ _players[Id].x, _players[Id].y, InputFrame::frameCounter });
-		InputFrame::frameCounter++;
+		_frames.push(InputFrame{ _players[Id].X, _players[Id].Y, ErrorX, ErrorY, InputFrame::FrameCounter });
+		InputFrame::FrameCounter++;
 	}
+	//TODO: update slave players, non local players
 
-	for (auto it : _players)
+	//Draw all players
+	for (const auto it : _players)
 	{
-		engDrawRect(it.second.x, it.second.y, it.second.w, it.second.h);
+		engDrawRect((int)std::round(it.second.X), (int)std::round(it.second.Y), it.second.W, it.second.H);
 	}
+	//TODO: draw world and props
 
-	if (engGetKeyDown(Key::Escape))
-		engClose();
+
+	//Update network client
+	SocketClient.SendData();
+	SocketClient.ReadData(*this);
 }
 
-void Client::AddNewPlayer(int ownerId, int x, int y)
+//Server messages
+
+void Client::AddNewPlayer(const int ownerId, const float x, const float y)
 {
 	if (_players.find(ownerId) != _players.end())
-	{
 		return;
-	}
 
 	_players[ownerId] = Player();
 	_players[ownerId].Id = ownerId;
-	_players[ownerId].x = x;
-	_players[ownerId].y = y;
-	_players[ownerId].w = _players[ownerId].h = 50;
+	_players[ownerId].X = x;
+	_players[ownerId].Y = y;
+	_players[ownerId].W = _players[ownerId].H = 50;
 }
 
-void Client::UpdatePlayer(int ownerId, float x, float y, int frameId)
+void Client::UpdatePlayer(const int ownerId, const float x, const float y, const int frameId)
 {
+	//Check if player has spawned yet
 	if (_players.find(ownerId) == _players.end())
+		return;
+
+	//Slave player
+	if (ownerId != Id)
 	{
+		_players[ownerId].X = x;
+		_players[ownerId].Y = y;
+		//TODO: interpolation to prevent stuttering
 		return;
 	}
 
+	//Local player error correction
 	while (!_frames.empty())
 	{
-		if (_frames.front().frameId >= frameId)
+		if (_frames.front().FrameId >= frameId)
 			break;
 		_frames.pop();
 	}
@@ -103,34 +112,23 @@ void Client::UpdatePlayer(int ownerId, float x, float y, int frameId)
 	{
 		return;
 	}
+
+	const InputFrame frame = _frames.front();
+	ErrorX = (x - frame.X) - frame.RemainingX;
+	ErrorY = (y - frame.Y) - frame.RemainingY;
 	
+	//Update all frames since server present to show that remaining error to correct is the full error
+	std::vector<InputFrame> vec;
+	while (!_frames.empty())
+	{
+		InputFrame f = _frames.front();
+		_frames.pop();
+		f.RemainingX = ErrorX;
+		f.RemainingY = ErrorY;
+		vec.push_back(f);
+	}
+	for (auto it : vec)
+		_frames.push(it);
 
-	InputFrame frame = _frames.front();
-
-	error_x = x - frame.x;
-	error_y = y - frame.y;
-
-	//while (!_frames.empty())
-	//	_frames.pop();
-}
-
-void InputMessage::Read(BinaryStream* stream, NetworkManager& manager)
-{
-	id = stream->Read<int>();
-	x = stream->Read<int>();
-	y = stream->Read<int>();
-	frameId = stream->Read<int>();
-
-	//Reading on the server
-	Server& server = (Server&)manager;
-	server.UpdatePlayer(id, x, y, frameId);	
-}
-
-int InputMessage::Write(BinaryStream* stream)
-{
-	stream->Write<int>(id);
-	stream->Write<int>(x);
-	stream->Write<int>(y);
-	stream->Write<int>(frameId);
-	return sizeof(int) * 4;
+	//TODO: should probably make frames a vector instead to prevent this ugly popping and re-pushing
 }

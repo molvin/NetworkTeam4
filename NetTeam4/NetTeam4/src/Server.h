@@ -10,10 +10,11 @@ public:
 	Server();
 	void Update();
 	void UpdatePlayer(int id, int x, int y, int frameId);
-	void OnConnect(std::string ip);
+	void OnConnect(const std::string& ip);
 
 	NetworkClient SocketClient;
 	std::unordered_map<int, Player> _players;
+	std::unordered_map<int, int> _processedFramesPerPlayer;
 };
 
 class ConnectionIdMessage : Message
@@ -31,7 +32,7 @@ class SpawnPlayerMessage : Message
 {
 public:
 	int OwnerId;
-	int x, y;
+	float X, Y;
 
 	virtual void Read(BinaryStream* stream, NetworkManager& manager) override;
 

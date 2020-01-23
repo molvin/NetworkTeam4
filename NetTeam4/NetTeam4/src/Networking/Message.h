@@ -5,6 +5,7 @@
 class Message
 {
 public:
+	virtual ~Message() = default;
 	virtual void Read(BinaryStream* stream, NetworkManager& manager) = 0;
 	virtual int Write(BinaryStream* stream) = 0;
 };

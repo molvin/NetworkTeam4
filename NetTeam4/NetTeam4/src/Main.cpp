@@ -1,37 +1,33 @@
 #include <cstdlib>
 #include "Networking/NetworkClient.h"
-#include "Networking/BinaryStream.hpp"
 #include "Engine/Engine.h"
-#include "Game/Player.h"
 #include "Server.h"
 #include "Client.h"
 
 #undef main
 
 #define SERVER 0
+#define IP "192.168.0.103"
 
 Server* server = nullptr;
 Client* client = nullptr;
 
-void temp()
-{
-	printf("Connection\n");
-}
+//TODO
+//Handle connect when server isn't up yet
+//Handle disconnect on server
+//Handle disconnect on client
 
 int main()
 {	
-	//engineInit();
-
 	if (SERVER)
 	{
 		server = new Server();
-		std::string s;
 		server->SocketClient.OnConnection = std::bind(&Server::OnConnect, server, std::placeholders::_1);
 	}
 	else
 	{
 		client = new Client();
-		client->Join("10.20.3.132", 50000);
+		client->Join(IP, 50000);
 		engineInit();
 	}
 

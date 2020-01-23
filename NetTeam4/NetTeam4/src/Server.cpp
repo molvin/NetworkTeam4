@@ -17,40 +17,40 @@ Server::Server() : SocketClient(50000)
 
 void Server::Update()
 {
-	for (auto it : _players)
+	for (const auto it : _players)
 	{
 		PlayerMessage* playerMessage = new PlayerMessage();
 		playerMessage->Id = it.first;
-		playerMessage->x = it.second.x;
-		playerMessage->y = it.second.y;
-		playerMessage->frameId = it.second.LastProcessedServerFrame;
+		playerMessage->X = it.second.X;
+		playerMessage->Y = it.second.Y;
+		playerMessage->FrameId = _processedFramesPerPlayer[it.first];
 		SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
 	}
 	
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	//Fake ping
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));	//100 ms
 	SocketClient.ReadData(*this);
 	SocketClient.SendData();
 }
 
-void Server::UpdatePlayer(int id, int x, int y, int frameId)
+void Server::UpdatePlayer(const int id, const int x, const int y, const int frameId)
 {
 	if (_players.find(id) == _players.end())
 		return;
 
-	if ((std::rand() % 100) < 30)
+	//Fake loss percentage
+	if ((std::rand() % 1000) < 20)	//2%
 		return;
 
-	_players[id].x += x;
-	_players[id].y += y;
-	_players[id].LastProcessedServerFrame = frameId;
+	_players[id].Update(x, y);
+	_processedFramesPerPlayer[id] = frameId;
 }
 
-void Server::OnConnect(std::string ip)
+void Server::OnConnect(const std::string& ip)
 {
 	printf("Connected: %s\n", ip.c_str());
-	//TODO: give id to connection, spawn a player for connection
 	ConnectionIdMessage* message = new ConnectionIdMessage();
-	int id = IdCounter++;
+	const int id = IdCounter++;
 	message->Id = id;
 
 	SocketClient.SendData();
@@ -59,17 +59,20 @@ void Server::OnConnect(std::string ip)
 
 	_players[id] = Player();
 	_players[id].Id = id;
-	_players[id].x = _players[id].y = id * 100;
+	_players[id].X = _players[id].Y = id * 100;
+	_processedFramesPerPlayer[id] = 0;
 
-	for (auto it : _players)
+	for (const auto it : _players)
 	{
 		SpawnPlayerMessage* playerSpawnMessage = new SpawnPlayerMessage();
 		playerSpawnMessage->OwnerId = it.first;
-		playerSpawnMessage->x = it.second.x;
-		playerSpawnMessage->y = it.second.y;
+		playerSpawnMessage->X = it.second.X;
+		playerSpawnMessage->Y = it.second.Y;
 		SocketClient.AddMessageToQueue((Message*)playerSpawnMessage, MessageType::PlayerSpawnMessage);
 	}	
 }
+
+//Messages
 
 void ConnectionIdMessage::Read(BinaryStream* stream, NetworkManager& manager)
 {
@@ -88,20 +91,20 @@ int ConnectionIdMessage::Write(BinaryStream* stream)
 void SpawnPlayerMessage::Read(BinaryStream* stream, NetworkManager& manager)
 {
 	OwnerId = stream->Read<int>();
-	x = stream->Read<int>();
-	y = stream->Read<int>();
+	X = stream->Read<float>();
+	Y = stream->Read<float>();
 
-	printf("Received player spawn message: id: %d, x: %d, y: %d\n", OwnerId, x, y);
+	printf("Received player spawn message: id: %d, x: %f, y: %f\n", OwnerId, X, Y);
 
 	Client& client = (Client&)manager;
-	client.AddNewPlayer(OwnerId, x, y);
+	client.AddNewPlayer(OwnerId, X, Y);
 }
 
 int SpawnPlayerMessage::Write(BinaryStream* stream)
 {
 	stream->Write<int>(OwnerId);
-	stream->Write<int>(x);
-	stream->Write<int>(y);
+	stream->Write<float>(X);
+	stream->Write<float>(Y);
 
 	printf("Sending player spawn message\n");
 	return sizeof(int) * 3;

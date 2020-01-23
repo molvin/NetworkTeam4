@@ -5,18 +5,10 @@
 
 struct InputFrame
 {
-	float x, y;
-	int frameId;
-	static int frameCounter;
-};
-
-class InputMessage : Message
-{
-public:
-	int id, x, y, frameId;
-
-	virtual void Read(BinaryStream* stream, NetworkManager& manager) override;
-	virtual int Write(BinaryStream* stream) override;
+	float X, Y;
+	float RemainingX, RemainingY;
+	int FrameId;
+	static int FrameCounter;
 };
 
 class Client : NetworkManager
@@ -26,14 +18,14 @@ public:
 	Client();
 	void Join(const std::string& ip, const int port);
 	void Update();
-	void AddNewPlayer(int ownerId, int x, int y);
+	void AddNewPlayer(int ownerId, float x, float y);
 	void UpdatePlayer(int ownerId, float x, float y, int frameId);
 
 	NetworkClient SocketClient;
 	std::map<int, Player> _players;
 	std::queue<InputFrame> _frames;
-	float error_x;
-	float error_y;
+	float ErrorX = 0.0f;
+	float ErrorY = 0.0f;
 
 };
 
