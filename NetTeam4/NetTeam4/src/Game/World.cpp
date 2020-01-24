@@ -21,12 +21,40 @@ void World::Draw() const
 	}
 }
 
-bool World::Colliding(const BoundingBox& collider) const
+bool World::Colliding(const BoundingBox& collider, Vector2& normal) const
 {
 	for (BoundingBox obj : Colliders)
 	{
 		if (collider.CollidesWith(obj))
+		{
+			//Check which side of the player collided, return the negative normal of that side
+			int x, y;
+			normal = Vector2(0.0f, -1.0f);
+			if (obj.ContainsPoint(collider.X, collider.Y) && obj.ContainsPoint(collider.X + collider.Width, collider.Y))
+			{
+				//Top side
+				normal = Vector2(0.0f, 1.0f);
+			}
+			else if (obj.ContainsPoint(collider.X, collider.Y + collider.Height) && obj.ContainsPoint(collider.X + collider.Width, collider.Y + collider.Height))
+			{
+				//Bottom
+				normal = Vector2(0.0f, -1.0f);
+
+			}
+			else if (obj.ContainsPoint(collider.X + collider.Width, collider.Y) && obj.ContainsPoint(collider.X + collider.Width, collider.Y + collider.Height))
+			{
+				//Right
+				normal = Vector2(-1.0f, 0.0f);
+			}
+			else if (obj.ContainsPoint(collider.X, collider.Y) && obj.ContainsPoint(collider.X, collider.Y + collider.Height))
+			{
+				//Left
+				normal = Vector2(1.0f, 0.0f);
+			}
+
+
 			return true;
+		}
 	}
 	return false;
 }

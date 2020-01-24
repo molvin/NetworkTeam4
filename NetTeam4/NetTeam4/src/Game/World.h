@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "../Math/Math.h"
 
 class BoundingBox;
 
@@ -9,7 +10,7 @@ public:
 	World();
 	void Update();
 	void Draw() const;
-	bool Colliding(const BoundingBox& collider) const;
+	bool Colliding(const BoundingBox& collider, Vector2& normal) const;
 
 private:
 	std::vector<BoundingBox> Colliders;

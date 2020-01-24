@@ -9,35 +9,42 @@ struct Vector2
 	Vector2() : X(0.0f), Y(0.0f) { }
 	Vector2(float x, float y) : X(x), Y(y) { }
 	Vector2(float value) : X(value), Y(value) { }
-	Vector2(const Vector2& other) : X(other.X), Y(other.Y) { }
 
-	Vector2 operator +(const Vector2& other)
+	Vector2 operator+(Vector2 otherVec) const
 	{
-		return Vector2(X + other.X, Y + other.Y);
+		return Vector2(X + otherVec.X, Y + otherVec.Y);
 	}
-	Vector2& operator +=(const Vector2& other)
+	Vector2 operator-(Vector2 otherVec) const
 	{
-		X += other.X;
-		Y += other.Y;
+		return Vector2(X - otherVec.X, Y - otherVec.Y);
+	}
+	Vector2 operator*(float scalar) const
+	{
+		return Vector2(X * scalar, Y * scalar);
+	}
+	Vector2 operator/(float scalar) const
+	{
+		return Vector2(X / scalar, Y / scalar);
+	}
+	Vector2& operator+=(const Vector2& otherVec)
+	{
+		*this = *this + otherVec;
 		return *this;
 	}
-	Vector2 operator -(const Vector2& other)
+	Vector2& operator-=(const Vector2& otherVec)
 	{
-		return Vector2(X - other.X, Y - other.Y);
-
+		*this = *this - otherVec;
+		return *this;
 	}
-	Vector2 operator =(const Vector2& other)
+	Vector2& operator*=(float scalar)
 	{
-		return Vector2(other.X, other.Y);
+		*this = *this * scalar;
+		return *this;
 	}
-	Vector2 operator *(const float value)
+	Vector2& operator/=(float scalar)
 	{
-		return Vector2(X * value, Y * value);
-
-	}
-	Vector2 operator /(const float value)
-	{
-		return Vector2(X / value, Y / value);
+		*this = *this / scalar;
+		return *this;
 	}
 
 	float magnitude()

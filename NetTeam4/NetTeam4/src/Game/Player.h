@@ -2,6 +2,7 @@
 #include "../Networking/Message.h"
 #include "../Math/Math.h"
 #include "../Game/World.h"
+#include "../Math/Math.h"
 
 class Player
 {
@@ -10,7 +11,8 @@ public:
 	Vector2 Position;				//TODO: update to vectors, position, size
 	int  W, H = 50;
 
-	const float Gravity = 10.0f;
+	Vector2 Velocity;
+	const float Gravity = 500.0f;
 	const float Speed = 250.0f;
 	
 	Player() = default;

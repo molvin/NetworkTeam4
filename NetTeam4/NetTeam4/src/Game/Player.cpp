@@ -53,7 +53,17 @@ int InputMessage::Write(BinaryStream* stream)
 
 void Player::Update(const int inputX, const int inputY, const World& world, const float deltaTime)
 {
-	if (!world.Colliding(BoundingBox(Position.X + inputX, Position.Y + inputY, W, H)))
-		Position += Vector2(inputX, inputY)* Speed * deltaTime;
+	Velocity -= Vector2::Up * Gravity * deltaTime;
+	Velocity += Vector2(inputX, inputY) * Speed * deltaTime;
+	
 
+	Vector2 normal;
+	if (world.Colliding(BoundingBox(Position.X + Velocity.X * deltaTime, Position.Y + Velocity.Y * deltaTime, W, H), normal))
+	{
+		Velocity -= normal * Vector2::Dot(normal, Velocity);
+		
+		printf("Collided: Velo: %f, %f\n", Velocity.X, Velocity.Y);
+	}
+
+	Position += Velocity * deltaTime;
 }
