@@ -1,7 +1,10 @@
 #include "Player.h"
 #include "../Client.h"
 #include "../Server.h"
+#include "../Game/World.h"
 
+//TODO: proper movement
+//TODO: super mario collision
 
 void PlayerMessage::Read(BinaryStream* stream, NetworkManager& manager)
 {
@@ -45,8 +48,9 @@ int InputMessage::Write(BinaryStream* stream)
 	return sizeof(int) * 4;
 }
 
-void Player::Update(const int inputX, const int inputY)
+void Player::Update(const int inputX, const int inputY, const World& world)
 {
-	X += inputX;
-	Y += inputY;
+	if (!world.Colliding(BoundingBox(Position.X + inputX, Position.Y + inputY, W, H)))
+		Position += Vector2(inputX, inputY);
+
 }

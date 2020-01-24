@@ -21,8 +21,8 @@ void Server::Update()
 	{
 		PlayerMessage* playerMessage = new PlayerMessage();
 		playerMessage->Id = it.first;
-		playerMessage->X = it.second.X;
-		playerMessage->Y = it.second.Y;
+		playerMessage->X = it.second.Position.X;
+		playerMessage->Y = it.second.Position.Y;
 		playerMessage->FrameId = _processedFramesPerPlayer[it.first];
 		SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
 	}
@@ -42,7 +42,7 @@ void Server::UpdatePlayer(const int id, const int x, const int y, const int fram
 	if ((std::rand() % 1000) < 20)	//2%
 		return;
 
-	_players[id].Update(x, y);
+	_players[id].Update(x, y, world);
 	_processedFramesPerPlayer[id] = frameId;
 }
 
@@ -59,15 +59,16 @@ void Server::OnConnect(const std::string& ip)
 
 	_players[id] = Player();
 	_players[id].Id = id;
-	_players[id].X = _players[id].Y = id * 100;
+	_players[id].Position = Vector2(id * 100);
+	_players[id].W = _players[id].H = 50;
 	_processedFramesPerPlayer[id] = 0;
 
 	for (const auto it : _players)
 	{
 		SpawnPlayerMessage* playerSpawnMessage = new SpawnPlayerMessage();
 		playerSpawnMessage->OwnerId = it.first;
-		playerSpawnMessage->X = it.second.X;
-		playerSpawnMessage->Y = it.second.Y;
+		playerSpawnMessage->X = it.second.Position.X;
+		playerSpawnMessage->Y = it.second.Position.Y;
 		SocketClient.AddMessageToQueue((Message*)playerSpawnMessage, MessageType::PlayerSpawnMessage);
 	}	
 }

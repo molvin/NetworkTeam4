@@ -1,14 +1,16 @@
 #pragma once
 #include "../Networking/Message.h"
+#include "../Math/Math.h"
+#include "../Game/World.h"
 
 class Player
 {
 public:
 	int Id;
-	float X, Y;				//TODO: update to vectors, position, size
-	int  W, H;
+	Vector2 Position;				//TODO: update to vectors, position, size
+	int  W, H = 50;
 
-	void Update(const int inputX, const int inputY);
+	void Update(const int inputX, const int inputY, const World& world);
 };
 
 class PlayerMessage : Message

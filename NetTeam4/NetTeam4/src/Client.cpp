@@ -13,6 +13,7 @@ Client::Client() : SocketClient(60000)
 	SocketClient.RegisterMessage((Message*)new InputMessage(), MessageType::Input);
 	SocketClient.RegisterMessage((Message*)new ConnectionIdMessage(), MessageType::ConnectionId);
 	SocketClient.RegisterMessage((Message*)new SpawnPlayerMessage(), MessageType::PlayerSpawnMessage);
+
 }
 
 void Client::Join(const std::string& ip, const int port)
@@ -42,18 +43,17 @@ void Client::Update()
 		if (engGetKey(Key::D))
 			x += 1;
 
-		_players[Id].Update(x, y);
+		_players[Id].Update(x, y, world);
 
 		InputMessage* message = new InputMessage(Id, x, y, InputFrame::FrameCounter);
 		SocketClient.AddMessageToQueue((Message*)(message), MessageType::Input);
 
 		//Error correction
-		_players[Id].X += ErrorX * 0.2f;
+		_players[Id].Position += Vector2(ErrorX, ErrorY) * 0.2f;
 		ErrorX *= 0.8f;
-		_players[Id].Y += ErrorY * 0.2f;
 		ErrorY *= 0.8f;
 
-		_frames.push(InputFrame{ _players[Id].X, _players[Id].Y, ErrorX, ErrorY, InputFrame::FrameCounter });
+		_frames.push(InputFrame{ _players[Id].Position.X, _players[Id].Position.Y, ErrorX, ErrorY, InputFrame::FrameCounter });
 		InputFrame::FrameCounter++;
 	}
 	//TODO: update slave players, non local players
@@ -61,9 +61,10 @@ void Client::Update()
 	//Draw all players
 	for (const auto it : _players)
 	{
-		engDrawRect((int)std::round(it.second.X), (int)std::round(it.second.Y), it.second.W, it.second.H);
+		engDrawRect((int)std::round(it.second.Position.X), (int)std::round(it.second.Position.Y), it.second.W, it.second.H);
 	}
 	//TODO: draw world and props
+	world.Update();
 
 
 	//Update network client
@@ -80,8 +81,8 @@ void Client::AddNewPlayer(const int ownerId, const float x, const float y)
 
 	_players[ownerId] = Player();
 	_players[ownerId].Id = ownerId;
-	_players[ownerId].X = x;
-	_players[ownerId].Y = y;
+	_players[ownerId].Position.X = x;
+	_players[ownerId].Position.Y = y;
 	_players[ownerId].W = _players[ownerId].H = 50;
 }
 
@@ -94,8 +95,8 @@ void Client::UpdatePlayer(const int ownerId, const float x, const float y, const
 	//Slave player
 	if (ownerId != Id)
 	{
-		_players[ownerId].X = x;
-		_players[ownerId].Y = y;
+		_players[ownerId].Position.X = x;
+		_players[ownerId].Position.Y = y;
 		//TODO: interpolation to prevent stuttering
 		return;
 	}

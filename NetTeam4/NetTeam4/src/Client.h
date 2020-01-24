@@ -2,6 +2,8 @@
 #include "Networking/NetworkClient.h"
 #include "Game/Player.h"
 #include <map>
+#include "Engine/Collision.h"
+#include "Game/World.h"
 
 struct InputFrame
 {
@@ -26,6 +28,7 @@ public:
 	std::queue<InputFrame> _frames;
 	float ErrorX = 0.0f;
 	float ErrorY = 0.0f;
+	World world;
 
 };
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "Networking/NetworkClient.h"
 #include "Game/Player.h"
+#include "Game/World.h"
 #include "NetworkManager.h"
 
 class Server : NetworkManager
@@ -15,6 +16,7 @@ public:
 	NetworkClient SocketClient;
 	std::unordered_map<int, Player> _players;
 	std::unordered_map<int, int> _processedFramesPerPlayer;
+	World world;
 };
 
 class ConnectionIdMessage : Message
