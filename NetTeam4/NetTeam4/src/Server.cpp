@@ -33,7 +33,7 @@ void Server::Update()
 	SocketClient.SendData();
 }
 
-void Server::UpdatePlayer(const int id, const int x, const int y, const int frameId)
+void Server::UpdatePlayer(const int id, const int x, const int y, const int frameId, const float deltaTime)
 {
 	if (_players.find(id) == _players.end())
 		return;
@@ -42,7 +42,7 @@ void Server::UpdatePlayer(const int id, const int x, const int y, const int fram
 	if ((std::rand() % 1000) < 20)	//2%
 		return;
 
-	_players[id].Update(x, y, world);
+	_players[id].Update(x, y, world, deltaTime);
 	_processedFramesPerPlayer[id] = frameId;
 }
 
@@ -57,7 +57,7 @@ void Server::OnConnect(const std::string& ip)
 	SocketClient.AddMessageToQueue((Message*)message, MessageType::ConnectionId);
 	SocketClient.SendData(ip);
 
-	_players[id] = Player();
+	//_players[id] = Player();
 	_players[id].Id = id;
 	_players[id].Position = Vector2(id * 100);
 	_players[id].W = _players[id].H = 50;

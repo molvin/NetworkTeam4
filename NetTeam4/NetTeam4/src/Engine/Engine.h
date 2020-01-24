@@ -12,6 +12,8 @@ void engClear();
 
 bool engIsOpen();
 
+float engDeltaTime();
+
 //Rendering
 void engDrawRect(int X, int Y, int Width, int Height);
 void engDrawLine(int X, int Y, int X2, int Y2);

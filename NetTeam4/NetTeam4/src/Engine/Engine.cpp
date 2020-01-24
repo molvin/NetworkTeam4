@@ -1,9 +1,13 @@
 #include "Engine.h"
+#include <chrono>
 
 static SDL_Window* Window;
 static SDL_Renderer* Renderer;
 static bool IsOpen;
 static int CurrentFrame;
+
+static std::chrono::high_resolution_clock::time_point LastFrameTime;
+static float DeltaTime = 0.0f;
 
 struct InputState{
 	bool Pressed;
@@ -19,7 +23,9 @@ void engineInit()
 	Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_ACCELERATED);
 	IsOpen = true;
 	CurrentFrame = 0;
+	LastFrameTime = std::chrono::high_resolution_clock::now();
 }
+
 void engClear(){
 	// Clear for next frame
 	SDL_SetRenderDrawColor(Renderer, 0x00, 0x00, 0x00, 0xFF);
@@ -60,9 +66,9 @@ void engineUpdate()
 	}
 
 	// Calculate next frame delta
-	//hr_clock::time_point Now = hr_clock::now();
-	//FrameDelta = duration_cast<microseconds>(Now - LastFrameTime).count() * 1e-6f;  // 10^6 microseconds in a second
-	//LastFrameTime = Now;
+	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+	DeltaTime = std::chrono::duration_cast<std::chrono::microseconds>(now - LastFrameTime).count() * 1e-6f;  // 10^6 microseconds in a second
+	LastFrameTime = now;
 
 	// Present SDL renderer
 	SDL_RenderPresent(Renderer);
@@ -70,6 +76,11 @@ void engineUpdate()
 
 	// Do a small delay so we dont fry the CPU
 	SDL_Delay(1);
+}
+
+float engDeltaTime()
+{
+	return DeltaTime;
 }
 
 void engDrawRect(int X, int Y, int Width, int Height){

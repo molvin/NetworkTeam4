@@ -10,7 +10,7 @@ public:
 	int IdCounter = 0;
 	Server();
 	void Update();
-	void UpdatePlayer(int id, int x, int y, int frameId);
+	void UpdatePlayer(int id, int x, int y, int frameId, const float deltaTime);
 	void OnConnect(const std::string& ip);
 
 	NetworkClient SocketClient;

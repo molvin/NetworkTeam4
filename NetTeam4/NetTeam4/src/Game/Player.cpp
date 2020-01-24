@@ -2,6 +2,7 @@
 #include "../Client.h"
 #include "../Server.h"
 #include "../Game/World.h"
+#include "../Engine/Engine.h"
 
 //TODO: proper movement
 //TODO: super mario collision
@@ -33,10 +34,11 @@ void InputMessage::Read(BinaryStream* stream, NetworkManager& manager)
 	X = stream->Read<int>();
 	Y = stream->Read<int>();
 	FrameId = stream->Read<int>();
+	DeltaTime = stream->Read<float>();
 
 	//Reading on the server
 	Server& server = (Server&)manager;
-	server.UpdatePlayer(Id, X, Y, FrameId);
+	server.UpdatePlayer(Id, X, Y, FrameId, DeltaTime);
 }
 
 int InputMessage::Write(BinaryStream* stream)
@@ -45,12 +47,13 @@ int InputMessage::Write(BinaryStream* stream)
 	stream->Write<int>(X);
 	stream->Write<int>(Y);
 	stream->Write<int>(FrameId);
-	return sizeof(int) * 4;
+	stream->Write<float>(DeltaTime);
+	return sizeof(int) * 5;
 }
 
-void Player::Update(const int inputX, const int inputY, const World& world)
+void Player::Update(const int inputX, const int inputY, const World& world, const float deltaTime)
 {
 	if (!world.Colliding(BoundingBox(Position.X + inputX, Position.Y + inputY, W, H)))
-		Position += Vector2(inputX, inputY);
+		Position += Vector2(inputX, inputY)* Speed * deltaTime;
 
 }

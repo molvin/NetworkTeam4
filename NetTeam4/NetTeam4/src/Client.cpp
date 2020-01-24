@@ -43,9 +43,9 @@ void Client::Update()
 		if (engGetKey(Key::D))
 			x += 1;
 
-		_players[Id].Update(x, y, world);
+		_players[Id].Update(x, y, world, engDeltaTime());
 
-		InputMessage* message = new InputMessage(Id, x, y, InputFrame::FrameCounter);
+		InputMessage* message = new InputMessage(Id, x, y, InputFrame::FrameCounter, engDeltaTime());
 		SocketClient.AddMessageToQueue((Message*)(message), MessageType::Input);
 
 		//Error correction
@@ -79,7 +79,7 @@ void Client::AddNewPlayer(const int ownerId, const float x, const float y)
 	if (_players.find(ownerId) != _players.end())
 		return;
 
-	_players[ownerId] = Player();
+	//_players[ownerId] = Player();
 	_players[ownerId].Id = ownerId;
 	_players[ownerId].Position.X = x;
 	_players[ownerId].Position.Y = y;
