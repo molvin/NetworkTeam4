@@ -51,6 +51,7 @@ struct Vector2
 	{
 		return std::sqrt(X * X + Y * Y);
 	}
+
 	void Normalize()
 	{
 		Vector2 vec = *this / magnitude();
@@ -63,7 +64,7 @@ struct Vector2
 	}
 	static float Dot(const Vector2& lhs, const Vector2& rhs)
 	{
-		return lhs.X * lhs.X + lhs.Y * rhs.Y;
+		return lhs.X * rhs.X + lhs.Y * rhs.Y;
 	}
 
 
@@ -73,3 +74,23 @@ struct Vector2
 	static Vector2 One;
 
 };
+
+namespace mathHelper
+{
+	inline float clamp(float value, float min, float max)
+	{
+		return value < min ? min : value > max ? max : value;
+	}
+	inline float lerp(float min, float max, float value)
+	{
+		return (max - min) * value + min;
+	}
+	inline float abs(float value)
+	{
+		return value < 0.0f ? -value : value;
+	}
+	inline Vector2 lerp(Vector2 min, Vector2 max, float value)
+	{
+		return Vector2(lerp(min.X, max.X, value), lerp(min.Y, max.Y, value));
+	}
+}

@@ -13,6 +13,7 @@ Client::Client() : SocketClient(60000)
 	SocketClient.RegisterMessage((Message*)new InputMessage(), MessageType::Input);
 	SocketClient.RegisterMessage((Message*)new ConnectionIdMessage(), MessageType::ConnectionId);
 	SocketClient.RegisterMessage((Message*)new SpawnPlayerMessage(), MessageType::PlayerSpawnMessage);
+	SocketClient.RegisterMessage((Message*)new BulletMessage(), MessageType::Bullet);
 
 }
 
@@ -24,7 +25,7 @@ void Client::Join(const std::string& ip, const int port)
 void Client::Update()
 {
 	//Update engine
-	engineUpdate();
+	engineUpdate(false);
 	if (engGetKeyDown(Key::Escape))
 		engClose();
 
@@ -43,15 +44,26 @@ void Client::Update()
 		if (engGetKey(Key::D))
 			x += 1;
 
-		_players[Id].Update(x, y, world, engDeltaTime());
+		bool jump = engGetKeyDown(Key::Space);
+		bool shoot = engGetKeyDown(Key::O);
 
-		InputMessage* message = new InputMessage(Id, x, y, InputFrame::FrameCounter, engDeltaTime());
+		byte buttons = 0;
+		if(jump)
+			buttons |= 1 << 0;
+		if(shoot)
+			buttons |= 1 << 1;
+
+		_players[Id].Update(x, y, jump, false, world, engDeltaTime(), *this);
+
+		InputMessage* message = new InputMessage(Id, x, y, buttons, InputFrame::FrameCounter, engDeltaTime());
 		SocketClient.AddMessageToQueue((Message*)(message), MessageType::Input);
+		printf("Client: %f %f \n", _players[Id].Position.X, _players[Id].Position.Y);
 
 		//Error correction
-		_players[Id].Position += Vector2(ErrorX, ErrorY) * 0.2f;
-		ErrorX *= 0.8f;
-		ErrorY *= 0.8f;
+		_players[Id].Position += Vector2(ErrorX, ErrorY);// * 0.2f;
+		//ErrorX *= 0.8f;
+		//ErrorY *= 0.8f;
+		ErrorX = ErrorY = 0.0f;
 
 		_frames.push(InputFrame{ _players[Id].Position.X, _players[Id].Position.Y, ErrorX, ErrorY, InputFrame::FrameCounter });
 		InputFrame::FrameCounter++;
@@ -60,6 +72,10 @@ void Client::Update()
 
 	//Draw all players
 	for (const auto it : _players)
+	{
+		engDrawRect((int)std::round(it.second.Position.X), (int)std::round(it.second.Position.Y), it.second.W, it.second.H);
+	}
+	for (const auto it : _bullets)
 	{
 		engDrawRect((int)std::round(it.second.Position.X), (int)std::round(it.second.Position.Y), it.second.W, it.second.H);
 	}
@@ -117,6 +133,7 @@ void Client::UpdatePlayer(const int ownerId, const float x, const float y, const
 	const InputFrame frame = _frames.front();
 	ErrorX = (x - frame.X) - frame.RemainingX;
 	ErrorY = (y - frame.Y) - frame.RemainingY;
+	printf("Server: %f, %f, Error: %f, %f\n", x, y, ErrorX, ErrorY);
 	
 	//Update all frames since server present to show that remaining error to correct is the full error
 	std::vector<InputFrame> vec;
@@ -132,4 +149,10 @@ void Client::UpdatePlayer(const int ownerId, const float x, const float y, const
 		_frames.push(it);
 
 	//TODO: should probably make frames a vector instead to prevent this ugly popping and re-pushing
+}
+
+void Client::UpdateBullets(int id, Vector2 position)
+{
+	_bullets[id].Id = id;
+	_bullets[id].Position = position;
 }

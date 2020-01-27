@@ -2,9 +2,9 @@
 #include "SDL/SDL.h"
 #include "Key.h"
 
-void engineInit();
+void engineInit(bool isServer);
 
-void engineUpdate();
+void engineUpdate(bool isServer);
 
 void engClose();
 

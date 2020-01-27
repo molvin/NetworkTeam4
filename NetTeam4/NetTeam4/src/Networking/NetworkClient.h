@@ -18,6 +18,7 @@ enum class MessageType : unsigned char
 	   Input,
 	   ConnectionId,
 	   PlayerSpawnMessage,
+	   Bullet
 };
 struct Connection
 {

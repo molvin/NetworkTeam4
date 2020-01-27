@@ -3,6 +3,8 @@
 #include "Engine/Engine.h"
 #include "Engine/Key.h"
 #include "Client.h"
+int Bullet::IdCounter = 0;
+float Bullet::Speed = 1000;
 
 Server::Server() : SocketClient(50000)
 {
@@ -10,6 +12,7 @@ Server::Server() : SocketClient(50000)
 	SocketClient.RegisterMessage((Message*)new InputMessage(), MessageType::Input);
 	SocketClient.RegisterMessage((Message*)new ConnectionIdMessage(), MessageType::ConnectionId);
 	SocketClient.RegisterMessage((Message*)new SpawnPlayerMessage(), MessageType::PlayerSpawnMessage);
+	SocketClient.RegisterMessage((Message*)new BulletMessage(), MessageType::Bullet);
 
 	SocketClient.Host();
 
@@ -27,22 +30,41 @@ void Server::Update()
 		SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
 	}
 	
+	for (auto& it : _bullets)
+	{
+		it.Position += it.Velocity * engDeltaTime();
+		BulletMessage* bulletMessage = new BulletMessage();
+		bulletMessage->Id = it.Id;
+		bulletMessage->Position = it.Position;
+		SocketClient.AddMessageToQueue((Message*)bulletMessage, MessageType::Bullet);
+	}
+
+	engineUpdate(true);
+
 	//Fake ping
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));	//100 ms
+	std::this_thread::sleep_for(std::chrono::milliseconds(30));
 	SocketClient.ReadData(*this);
 	SocketClient.SendData();
 }
 
-void Server::UpdatePlayer(const int id, const int x, const int y, const int frameId, const float deltaTime)
+void Server::UpdatePlayer(const int id, const int x, const int y, byte buttons, const int frameId, const float deltaTime)
 {
 	if (_players.find(id) == _players.end())
+		return;
+
+	if (_processedFramesPerPlayer[id] >= frameId)
 		return;
 
 	//Fake loss percentage
 	if ((std::rand() % 1000) < 20)	//2%
 		return;
 
-	_players[id].Update(x, y, world, deltaTime);
+	bool jump = (buttons & (1 << 0)) > 0;
+	bool shoot = (buttons & (1 << 1)) > 0;
+
+	printf("Running player update %d}\n", frameId);
+
+	_players[id].Update(x, y, jump, shoot, world, deltaTime, *this);
 	_processedFramesPerPlayer[id] = frameId;
 }
 
@@ -71,6 +93,11 @@ void Server::OnConnect(const std::string& ip)
 		playerSpawnMessage->Y = it.second.Position.Y;
 		SocketClient.AddMessageToQueue((Message*)playerSpawnMessage, MessageType::PlayerSpawnMessage);
 	}	
+}
+
+void Server::AddBullet(int id, Vector2 position, int direction)
+{
+	_bullets.push_back(Bullet{ Bullet::IdCounter++, id, position, Vector2(direction * Bullet::Speed, 0.0f) });
 }
 
 //Messages
@@ -108,5 +135,23 @@ int SpawnPlayerMessage::Write(BinaryStream* stream)
 	stream->Write<float>(Y);
 
 	printf("Sending player spawn message\n");
+	return sizeof(int) * 3;
+}
+
+void BulletMessage::Read(BinaryStream* stream, NetworkManager& manager)
+{
+	Id = stream->Read<int>();
+	Position.X = stream->Read<float>();
+	Position.Y = stream->Read<float>();
+
+	Client& client = (Client&) manager;
+	client.UpdateBullets(Id, Position);
+}
+
+int BulletMessage::Write(BinaryStream* stream)
+{
+	stream->Write<int>(Id);
+	stream->Write<float>(Position.X);
+	stream->Write<float>(Position.Y);
 	return sizeof(int) * 3;
 }

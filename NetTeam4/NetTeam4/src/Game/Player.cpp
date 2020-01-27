@@ -3,6 +3,7 @@
 #include "../Server.h"
 #include "../Game/World.h"
 #include "../Engine/Engine.h"
+#include "../Math/Math.h"
 
 //TODO: proper movement
 //TODO: super mario collision
@@ -35,10 +36,11 @@ void InputMessage::Read(BinaryStream* stream, NetworkManager& manager)
 	Y = stream->Read<int>();
 	FrameId = stream->Read<int>();
 	DeltaTime = stream->Read<float>();
+	Buttons = stream->Read<byte>();
 
 	//Reading on the server
 	Server& server = (Server&)manager;
-	server.UpdatePlayer(Id, X, Y, FrameId, DeltaTime);
+	server.UpdatePlayer(Id, X, Y, Buttons, FrameId, DeltaTime);
 }
 
 int InputMessage::Write(BinaryStream* stream)
@@ -48,22 +50,53 @@ int InputMessage::Write(BinaryStream* stream)
 	stream->Write<int>(Y);
 	stream->Write<int>(FrameId);
 	stream->Write<float>(DeltaTime);
-	return sizeof(int) * 5;
+	stream->Write<byte>(Buttons);
+	return sizeof(int) * 5 + 1;
 }
-
-void Player::Update(const int inputX, const int inputY, const World& world, const float deltaTime)
+void Player::Update(const int inputX, const int inputY, bool jump, bool shoot, const World& world, const float deltaTime, NetworkManager& manager)
 {
+
 	Velocity -= Vector2::Up * Gravity * deltaTime;
-	Velocity += Vector2(inputX, inputY) * Speed * deltaTime;
+	
+	if(mathHelper::abs(Velocity.X + inputX * Acceleration * deltaTime) < MaxSpeed)
+		Velocity += Vector2(inputX, inputY) * Acceleration * deltaTime;
 	
 
 	Vector2 normal;
 	if (world.Colliding(BoundingBox(Position.X + Velocity.X * deltaTime, Position.Y + Velocity.Y * deltaTime, W, H), normal))
 	{
-		Velocity -= normal * Vector2::Dot(normal, Velocity);
-		
-		printf("Collided: Velo: %f, %f\n", Velocity.X, Velocity.Y);
+		if (Vector2::Dot(normal, Velocity) < 0.0f)
+		{
+			Velocity -= normal * Vector2::Dot(normal, Velocity);
+			Grounded = true;
+			printf("Collided: Velo: %f, %f\n", Velocity.X, Velocity.Y);
+		}
+
+	}
+	else
+	{
+		Grounded = false;
 	}
 
+	if (Grounded && (inputX == 0 || Vector2::Dot(Velocity, Vector2(inputX, 0.0f)) < 0.0f))
+	{
+		Velocity = mathHelper::lerp(Velocity, Vector2::Zero, Friction * deltaTime);
+	}
+
+	if (jump && Grounded)
+	{
+		Velocity.Y = -JumpSpeed;
+		Grounded = false;
+	}
+	   
 	Position += Velocity * deltaTime;
+
+	//Server only shooting
+
+	if (shoot)
+	{
+		Server& server = (Server&) manager;
+		server.AddBullet(Id, Position, 1);
+	}
+
 }

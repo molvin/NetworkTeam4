@@ -54,7 +54,7 @@ int main()
 	std::cout << Command << std::endl;
 
 	std::size_t StartPos = Command.find("Type");
-	//StartPos = Command.find("Type", StartPos + 1);
+	//StartPos = Command.find("Type", StartPos + 1);5
 	if (StartPos != std::string::npos)
 		std::cout << StartPos << "\n\n\n";
 
@@ -103,16 +103,19 @@ int main()
 	}
 
 
+	engineInit(SERVER);
+
 	if (SERVER)
 	{
 		server = new Server();
 		server->SocketClient.OnConnection = std::bind(&Server::OnConnect, server, std::placeholders::_1);
+
 	}
 	else
 	{
 		client = new Client();
 		client->Join(IP, 50000);
-		engineInit();
+
 	}
 
 

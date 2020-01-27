@@ -16,12 +16,15 @@ struct InputState{
 static InputState KeyStates[(unsigned int)Key::MAX];
 
 
-void engineInit()
+void engineInit(bool isServer)
 {
-	SDL_Init(SDL_INIT_VIDEO);
-	Window = SDL_CreateWindow("Hello World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
-	Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_ACCELERATED);
-	IsOpen = true;
+	if (!isServer)
+	{
+		SDL_Init(SDL_INIT_VIDEO);
+		Window = SDL_CreateWindow("Hello World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
+		Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_ACCELERATED);
+		IsOpen = true;
+	}
 	CurrentFrame = 0;
 	LastFrameTime = std::chrono::high_resolution_clock::now();
 }
@@ -39,43 +42,51 @@ bool engIsOpen()
 {
 	return IsOpen;
 }
-void engineUpdate()
+void engineUpdate(bool isServer)
 {
+
 	CurrentFrame++;
 
-	// Poll window events
-	SDL_Event e;
-	while (SDL_PollEvent(&e)){
-		if (e.type == SDL_QUIT)
-			engClose();
+	if (!isServer)
+	{
+		// Poll window events
+		SDL_Event e;
+		while (SDL_PollEvent(&e)) {
+			if (e.type == SDL_QUIT)
+				engClose();
 
-		if (e.type == SDL_KEYDOWN){
-			// We dont care about repeats
-			if (e.key.repeat == 0){
+			if (e.type == SDL_KEYDOWN) {
+				// We dont care about repeats
+				if (e.key.repeat == 0) {
+					InputState& state = KeyStates[e.key.keysym.scancode];
+					state.Pressed = true;
+					state.FrameNum = CurrentFrame;
+				}
+			}
+
+			if (e.type == SDL_KEYUP) {
 				InputState& state = KeyStates[e.key.keysym.scancode];
-				state.Pressed = true;
+				state.Pressed = false;
 				state.FrameNum = CurrentFrame;
 			}
 		}
-
-		if (e.type == SDL_KEYUP){
-			InputState& state = KeyStates[e.key.keysym.scancode];
-			state.Pressed = false;
-			state.FrameNum = CurrentFrame;
-		}
 	}
-
+	
 	// Calculate next frame delta
 	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
 	DeltaTime = std::chrono::duration_cast<std::chrono::microseconds>(now - LastFrameTime).count() * 1e-6f;  // 10^6 microseconds in a second
 	LastFrameTime = now;
 
-	// Present SDL renderer
-	SDL_RenderPresent(Renderer);
-	engClear();
+	if (!isServer)
+	{
+		// Present SDL renderer
+		SDL_RenderPresent(Renderer);
+		engClear();
 
-	// Do a small delay so we dont fry the CPU
-	SDL_Delay(1);
+		// Do a small delay so we dont fry the CPU
+		SDL_Delay(1);
+	}
+
 }
 
 float engDeltaTime()
