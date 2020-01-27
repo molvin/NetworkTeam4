@@ -77,9 +77,26 @@ void NetworkClient::Listen()
 				OnConnection(ip);
 				_lock.unlock();
 				
+				
+
+				sockaddr_in recvAddr;
+				recvAddr.sin_family = AF_INET;
+				recvAddr.sin_port = htons(port);
+				recvAddr.sin_addr.s_addr = inet_addr(ip.c_str());
+
+				byte messageType = (byte)MessageType::Join;
+				sendto(_socket, (const char*)& messageType, 1, 0, (SOCKADDR*)& recvAddr, sizeof(recvAddr));
+				printf("Sending join response\n");
+
 				continue;
 			}
 			printf("Received unexpected message from client\n");
+		}
+		else if (receiveResult == 1 && buffer[0] == (byte)MessageType::Join)
+		{
+			printf("Received join response\n");
+			_connected = true;
+			continue;
 		}
 
 		BinaryStream stream;
@@ -164,6 +181,8 @@ void NetworkClient::ReadData(NetworkManager& manager)
 		while (!stream.EndOfStream())
 		{
 			byte typeByte = stream.Read<byte>();
+			if (_messages.find((MessageType)typeByte) == _messages.end())
+				break;
 			_messages[(MessageType)typeByte]->Read(&stream, manager);
 		}
 		_streams.pop();
@@ -187,6 +206,15 @@ void NetworkClient::Join(std::string ip, int port)
 {
 	_hosting = false;
 	_connections[ip] = Connection{ ip, port };
+
+
+	_joinThread = new std::thread([=] {JoinLoop(ip, port); });
+
+
+}
+
+void NetworkClient::JoinLoop(std::string ip, int port)
+{
 	BinaryStream stream;
 	stream.Write<byte>((byte)MessageType::Join);
 	stream.Write<int>(_port);
@@ -195,7 +223,13 @@ void NetworkClient::Join(std::string ip, int port)
 	RecvAddr.sin_family = AF_INET;
 	RecvAddr.sin_port = htons(port);
 	RecvAddr.sin_addr.s_addr = inet_addr(ip.c_str());
-	int result = sendto(_socket, (const char*)&stream.Buffer[0], sizeof(byte) + sizeof(int), 0, (SOCKADDR*)&RecvAddr, sizeof(RecvAddr));
+	
+	while (!_connected)
+	{
+		int result = sendto(_socket, (const char*)& stream.Buffer[0], sizeof(byte) + sizeof(int), 0, (SOCKADDR*)& RecvAddr, sizeof(RecvAddr));
+		std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+		std::printf("Sending join request\n");
+	}
 }
 
 void NetworkClient::Host()

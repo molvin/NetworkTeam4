@@ -38,6 +38,7 @@ public:
 	void AddMessageToQueue(Message* message, MessageType type);
 	void RegisterMessage(Message* message, MessageType type);
 	void Join(std::string ip, int port);
+	void JoinLoop(std::string ip, int port);
 	void Host();
 
 	std::function<void(std::string)> OnConnection;
@@ -46,12 +47,14 @@ private:
 	void Listen();
 	
 	std::thread _thread;
+	std::thread* _joinThread;
 	SOCKET _socket;
 	std::queue<std::tuple<MessageType, Message*>> _messageQueue;
 	bool _bound = false;
 	int _port;
 	bool _closeThread = false;
 	bool _hosting = false;
+	bool _connected = false;
 	std::queue<BinaryStream> _streams;
 	std::mutex _lock;
 	std::unordered_map<MessageType, Message*> _messages;
