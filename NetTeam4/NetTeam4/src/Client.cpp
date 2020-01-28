@@ -5,6 +5,7 @@
 #include "Engine/Key.h"
 
 int InputFrame::FrameCounter = 0;
+float ClientBullet::Speed = 30;
 
 Client::Client() : SocketClient(60000)
 {
@@ -60,10 +61,9 @@ void Client::Update()
 		printf("Client: %f %f \n", _players[Id].Position.X, _players[Id].Position.Y);
 
 		//Error correction
-		_players[Id].Position += Vector2(ErrorX, ErrorY);// * 0.2f;
-		//ErrorX *= 0.8f;
-		//ErrorY *= 0.8f;
-		ErrorX = ErrorY = 0.0f;
+		_players[Id].Position += Vector2(ErrorX, ErrorY) * 0.2f;
+		ErrorX *= 0.8f;
+		ErrorY *= 0.8f;
 
 		_frames.push(InputFrame{ _players[Id].Position.X, _players[Id].Position.Y, ErrorX, ErrorY, InputFrame::FrameCounter });
 		InputFrame::FrameCounter++;
@@ -75,8 +75,9 @@ void Client::Update()
 	{
 		engDrawRect((int)std::round(it.second.Position.X), (int)std::round(it.second.Position.Y), it.second.W, it.second.H);
 	}
-	for (const auto it : _bullets)
+	for (auto& it : _bullets)
 	{
+		it.second.Position = mathHelper::lerp(it.second.Position, it.second.TargetPosition, ClientBullet::Speed * engDeltaTime());
 		engDrawRect((int)std::round(it.second.Position.X), (int)std::round(it.second.Position.Y), it.second.W, it.second.H);
 	}
 	//TODO: draw world and props
@@ -153,6 +154,10 @@ void Client::UpdatePlayer(const int ownerId, const float x, const float y, const
 
 void Client::UpdateBullets(int id, Vector2 position)
 {
-	_bullets[id].Id = id;
-	_bullets[id].Position = position;
+	if (_bullets.find(id) == _bullets.end())
+	{
+		_bullets[id].Id = id;
+		_bullets[id].Position = _bullets[id].TargetPosition = position;
+	}
+	_bullets[id].TargetPosition = position;
 }

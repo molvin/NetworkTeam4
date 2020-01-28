@@ -9,8 +9,10 @@ struct ClientBullet
 {
 	int Id;
 	Vector2 Position;
+	Vector2 TargetPosition;
 	int W = 15;
 	int H = 15;
+	static float Speed;
 };
 
 struct InputFrame
