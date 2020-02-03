@@ -34,7 +34,7 @@ public:
 	NetworkClient(int port);
 	~NetworkClient();
 	void Close();
-	void SendData(std::string ip = "");
+	void SendData(Connection conn = Connection{"", 0});
 	void ReadData(NetworkManager& manager);
 	void AddMessageToQueue(Message* message, MessageType type);
 	void RegisterMessage(Message* message, MessageType type);
@@ -42,7 +42,7 @@ public:
 	void JoinLoop(std::string ip, int port);
 	void Host();
 
-	std::function<void(std::string)> OnConnection;
+	std::function<void(std::string, int port)> OnConnection;
 
 private:
 	void Listen();
@@ -59,6 +59,6 @@ private:
 	std::queue<BinaryStream> _streams;
 	std::mutex _lock;
 	std::unordered_map<MessageType, Message*> _messages;
-	std::unordered_map<std::string, Connection> _connections;
+	std::vector<Connection> _connections;
 };
 

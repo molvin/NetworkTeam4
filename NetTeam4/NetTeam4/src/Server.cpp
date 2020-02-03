@@ -62,13 +62,13 @@ void Server::UpdatePlayer(const int id, const int x, const int y, byte buttons, 
 	bool jump = (buttons & (1 << 0)) > 0;
 	bool shoot = (buttons & (1 << 1)) > 0;
 
-	printf("Running player update %d}\n", frameId);
+	//printf("Running player update %d}\n", frameId);
 
 	_players[id].Update(x, y, jump, shoot, world, deltaTime, *this);
 	_processedFramesPerPlayer[id] = frameId;
 }
 
-void Server::OnConnect(const std::string& ip)
+void Server::OnConnect(const std::string& ip, int port)
 {
 	printf("Connected: %s\n", ip.c_str());
 	ConnectionIdMessage* message = new ConnectionIdMessage();
@@ -77,13 +77,14 @@ void Server::OnConnect(const std::string& ip)
 
 	SocketClient.SendData();
 	SocketClient.AddMessageToQueue((Message*)message, MessageType::ConnectionId);
-	SocketClient.SendData(ip);
+	SocketClient.SendData({ ip, port });
 
 	//_players[id] = Player();
 	_players[id].Id = id;
 	_players[id].Position = Vector2(id * 100);
 	_players[id].W = _players[id].H = 50;
 	_processedFramesPerPlayer[id] = 0;
+	printf("Player count: %d\n", (int)_players.size());
 
 	for (const auto it : _players)
 	{
@@ -92,7 +93,8 @@ void Server::OnConnect(const std::string& ip)
 		playerSpawnMessage->X = it.second.Position.X;
 		playerSpawnMessage->Y = it.second.Position.Y;
 		SocketClient.AddMessageToQueue((Message*)playerSpawnMessage, MessageType::PlayerSpawnMessage);
-	}	
+	}
+	SocketClient.SendData();
 }
 
 void Server::AddBullet(int id, Vector2 position, int direction)

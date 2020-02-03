@@ -69,7 +69,7 @@ void Player::Update(const int inputX, const int inputY, bool jump, bool shoot, c
 		{
 			Velocity -= normal * Vector2::Dot(normal, Velocity);
 			Grounded = true;
-			printf("Collided: Velo: %f, %f\n", Velocity.X, Velocity.Y);
+			//printf("Collided: Velo: %f, %f\n", Velocity.X, Velocity.Y);
 		}
 
 	}

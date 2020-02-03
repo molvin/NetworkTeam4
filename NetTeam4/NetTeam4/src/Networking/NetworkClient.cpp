@@ -11,28 +11,40 @@ NetworkClient::NetworkClient(int port) : _thread([=] { Listen(); })
 	int error = WSAStartup(MAKEWORD(2, 0), &info);
 	printf("Error code: %d\n", error);
 
-	
+
 	_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	printf("Socket: %d\n", _socket);
-	if(_socket == INVALID_SOCKET)
+	if (_socket == INVALID_SOCKET)
 	{
 		printf("Socket failed to init: %d\n", WSAGetLastError());
 	}
-	
-	SOCKADDR_IN address;
 
-	address.sin_family = AF_INET;
-	address.sin_port = htons(_port);
-	address.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	int iResult = bind(_socket, (SOCKADDR*)& address, sizeof(address));
-	if (iResult == -1)
+	int iResult = -1;
+	int count = 0;
+	do
 	{
-		printf("Failed to bind socket: %d\n", WSAGetLastError());
-	}
-	else
-		_bound = true;
- }
+		SOCKADDR_IN address;
+
+		address.sin_family = AF_INET;
+		address.sin_port = htons(_port + count);
+		address.sin_addr.s_addr = htonl(INADDR_ANY);
+
+		iResult = bind(_socket, (SOCKADDR*)& address, sizeof(address));
+		if (iResult == -1)
+		{
+			printf("Failed to bind socket: %d\n", WSAGetLastError());
+			count++;
+		}
+		else
+		{
+			_port = _port + count;
+			_bound = true;
+			printf("Bound socket successfully at port: %d\n", _port);
+		}
+	} while (iResult == -1 && count < 100);
+	
+}
 
 NetworkClient::~NetworkClient()
 {
@@ -41,7 +53,7 @@ NetworkClient::~NetworkClient()
 
 void NetworkClient::Listen()
 {
-	while(!_closeThread)
+	while (!_closeThread)
 	{
 		if (!_bound)
 			continue;
@@ -55,29 +67,31 @@ void NetworkClient::Listen()
 		if (receiveResult == -1)
 		{
 			int error = WSAGetLastError();
-			printf("Listen Error: %d\n", error);	
+			printf("Listen Error: %d\n", error);
 			continue;
 		}
 
 		std::string ip = inet_ntoa(sender.sin_addr);
-		if (_hosting && _connections.find(ip) == _connections.end())
+		if (_hosting)
 		{
 			//Check if host should add known connection
 			if (receiveResult == 5 && buffer[0] == (unsigned char)MessageType::Join)
 			{
+
 				BinaryStream stream;
 				for (int i = 0; i < receiveResult; i++)
 					stream.Buffer.push_back(buffer[i]);
 				stream.Read<byte>();
 				int port = stream.Read<int>();
-				
+
+				if (std::find_if(_connections.begin(), _connections.end(), [&ip, &port](const Connection& conn) {return conn.Ip != ip && conn.Port != port; }) != _connections.end())
+					continue;
 				_lock.lock();
-				_connections[ip] = Connection{ ip, port };
+				_connections.push_back({ ip, port });
 				printf("Added new connection %s, %d\n", ip.c_str(), port);
-				OnConnection(ip);
+				OnConnection(ip, port);
 				_lock.unlock();
-				
-				
+
 
 				sockaddr_in recvAddr;
 				recvAddr.sin_family = AF_INET;
@@ -90,9 +104,8 @@ void NetworkClient::Listen()
 
 				continue;
 			}
-			printf("Received unexpected message from client\n");
 		}
-		else if (receiveResult == 1 && buffer[0] == (byte)MessageType::Join)
+		if (receiveResult == 1 && buffer[0] == (byte)MessageType::Join)
 		{
 			printf("Received join response\n");
 			_connected = true;
@@ -101,7 +114,8 @@ void NetworkClient::Listen()
 
 		BinaryStream stream;
 
-		for (int i = 0; i < receiveResult; i++){
+		for (int i = 0; i < receiveResult; i++)
+		{
 			stream.Buffer.push_back(buffer[i]);
 		}
 		_lock.lock();
@@ -114,13 +128,11 @@ void NetworkClient::Listen()
 			_messages[(MessageType)typeByte]->Read(&stream);
 		}
 		*/
-			
-		
 	}
 	printf("Closing thread");
 }
 
-void NetworkClient::SendData(std::string ip)
+void NetworkClient::SendData(Connection conn)
 {
 	BinaryStream stream;
 	int size = 0;
@@ -146,21 +158,22 @@ void NetworkClient::SendData(std::string ip)
 		return;
 	}
 
-	for (auto it : _connections)	
+	for (auto it : _connections)
 	{
-		if (ip != "")
+		if (conn.Port > 0)
 		{
-			if(it.second.Ip != ip)
+			if (it.Ip != conn.Ip || it.Port != conn.Port)
 				continue;
 		}
 
 		sockaddr_in recvAddr;
 		recvAddr.sin_family = AF_INET;
-		recvAddr.sin_port = htons(it.second.Port);
-		recvAddr.sin_addr.s_addr = inet_addr(it.second.Ip.c_str());
+		recvAddr.sin_port = htons(it.Port);
+		recvAddr.sin_addr.s_addr = inet_addr(it.Ip.c_str());
 
 		int result = sendto(_socket, (const char*)&stream.Buffer[0], size, 0, (SOCKADDR*)&recvAddr, sizeof(recvAddr));
-		if (result == -1){
+		if (result == -1)
+		{
 			int error = WSAGetLastError();
 			printf("Send Error: %d\n", error);
 		}
@@ -193,7 +206,7 @@ void NetworkClient::ReadData(NetworkManager& manager)
 
 void NetworkClient::AddMessageToQueue(Message* message, MessageType type)
 {
-	_messageQueue.push({ type, message });
+	_messageQueue.push({type, message});
 }
 
 void NetworkClient::RegisterMessage(Message* message, MessageType type)
@@ -205,28 +218,33 @@ void NetworkClient::RegisterMessage(Message* message, MessageType type)
 void NetworkClient::Join(std::string ip, int port)
 {
 	_hosting = false;
-	_connections[ip] = Connection{ ip, port };
+	_connections.push_back({ ip, port });
 
 
-	_joinThread = new std::thread([=] {JoinLoop(ip, port); });
-
-
+	_joinThread = new std::thread([=] { JoinLoop(ip, port); });
 }
 
 void NetworkClient::JoinLoop(std::string ip, int port)
 {
-	BinaryStream stream;
-	stream.Write<byte>((byte)MessageType::Join);
-	stream.Write<int>(_port);
-
 	sockaddr_in RecvAddr;
 	RecvAddr.sin_family = AF_INET;
 	RecvAddr.sin_port = htons(port);
 	RecvAddr.sin_addr.s_addr = inet_addr(ip.c_str());
-	
+
+	while (!_bound)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	}
+
+	printf("Writing join message: %d\n", _port);
+	BinaryStream stream;
+	stream.Write<byte>((byte)MessageType::Join);
+	stream.Write<int>(_port);
+
 	while (!_connected)
 	{
-		int result = sendto(_socket, (const char*)& stream.Buffer[0], sizeof(byte) + sizeof(int), 0, (SOCKADDR*)& RecvAddr, sizeof(RecvAddr));
+		int result = sendto(_socket, (const char*)& stream.Buffer[0], sizeof(byte) + sizeof(int), 0,
+		                    (SOCKADDR*)& RecvAddr, sizeof(RecvAddr));
 		std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 		std::printf("Sending join request\n");
 	}
@@ -241,7 +259,7 @@ void NetworkClient::Close()
 {
 	_closeThread = true;
 	closesocket(_socket);
-	while (_thread.joinable())	
+	while (_thread.joinable())
 	{
 		_thread.join();
 	}

@@ -108,7 +108,7 @@ int main()
 	if (SERVER)
 	{
 		server = new Server();
-		server->SocketClient.OnConnection = std::bind(&Server::OnConnect, server, std::placeholders::_1);
+		server->SocketClient.OnConnection = std::bind(&Server::OnConnect, server, std::placeholders::_1, std::placeholders::_2);
 
 	}
 	else

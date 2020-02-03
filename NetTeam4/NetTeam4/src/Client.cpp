@@ -58,7 +58,7 @@ void Client::Update()
 
 		InputMessage* message = new InputMessage(Id, x, y, buttons, InputFrame::FrameCounter, engDeltaTime());
 		SocketClient.AddMessageToQueue((Message*)(message), MessageType::Input);
-		printf("Client: %f %f \n", _players[Id].Position.X, _players[Id].Position.Y);
+		//printf("Client: %f %f \n", _players[Id].Position.X, _players[Id].Position.Y);
 
 		//Error correction
 		_players[Id].Position += Vector2(ErrorX, ErrorY) * 0.2f;
@@ -93,6 +93,7 @@ void Client::Update()
 
 void Client::AddNewPlayer(const int ownerId, const float x, const float y)
 {
+	printf("Received player message with id: %d\n", ownerId);
 	if (_players.find(ownerId) != _players.end())
 		return;
 
@@ -134,7 +135,7 @@ void Client::UpdatePlayer(const int ownerId, const float x, const float y, const
 	const InputFrame frame = _frames.front();
 	ErrorX = (x - frame.X) - frame.RemainingX;
 	ErrorY = (y - frame.Y) - frame.RemainingY;
-	printf("Server: %f, %f, Error: %f, %f\n", x, y, ErrorX, ErrorY);
+	//printf("Server: %f, %f, Error: %f, %f\n", x, y, ErrorX, ErrorY);
 	
 	//Update all frames since server present to show that remaining error to correct is the full error
 	std::vector<InputFrame> vec;

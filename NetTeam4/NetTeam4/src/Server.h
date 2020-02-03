@@ -22,7 +22,7 @@ public:
 	Server();
 	void Update();
 	void UpdatePlayer(int id, int x, int y, byte buttons, int frameId, const float deltaTime);
-	void OnConnect(const std::string& ip);
+	void OnConnect(const std::string& ip, int port);
 	void AddBullet(int id, Vector2 position, int direction);
 
 	NetworkClient SocketClient;
