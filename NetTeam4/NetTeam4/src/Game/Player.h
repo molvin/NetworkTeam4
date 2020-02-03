@@ -12,7 +12,7 @@ public:
 	int  W, H = 50;
 
 	Vector2 Velocity;
-	const float Gravity = 400.0f;
+	const float Gravity = 1200.0f;
 	const float Acceleration = 850.0f;
 	const float Friction = 15.0f;
 	const float MaxSpeed = 200.0f;

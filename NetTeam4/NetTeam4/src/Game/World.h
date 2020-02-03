@@ -8,7 +8,7 @@ class World
 {
 public:
 	World();
-	void Update();
+	void Update() const;
 	void Draw() const;
 	bool Colliding(const BoundingBox& collider, Vector2& normal) const;
 

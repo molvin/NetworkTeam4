@@ -158,7 +158,7 @@ void NetworkClient::SendData(Connection conn)
 		return;
 	}
 
-	for (auto it : _connections)
+	for (const auto& it : _connections)
 	{
 		if (conn.Port > 0)
 		{

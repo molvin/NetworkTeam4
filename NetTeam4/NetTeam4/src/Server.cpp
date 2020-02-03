@@ -5,6 +5,7 @@
 #include "Client.h"
 int Bullet::IdCounter = 0;
 float Bullet::Speed = 1000;
+float Bullet::LifeTime = 3.0f;
 
 Server::Server() : SocketClient(50000)
 {
@@ -29,14 +30,18 @@ void Server::Update()
 		playerMessage->FrameId = _processedFramesPerPlayer[it.first];
 		SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
 	}
-	
-	for (auto& it : _bullets)
+
+	const int size = _bullets.size();
+	for (int i = size - 1; i >= 0; i--)
 	{
-		it.Position += it.Velocity * engDeltaTime();
+		_bullets[i].Position += _bullets[i].Velocity * engDeltaTime();
+		_bullets[i].Time += engDeltaTime();
 		BulletMessage* bulletMessage = new BulletMessage();
-		bulletMessage->Id = it.Id;
-		bulletMessage->Position = it.Position;
+		bulletMessage->Id = _bullets[i].Id;
+		bulletMessage->Position = _bullets[i].Position;
 		SocketClient.AddMessageToQueue((Message*)bulletMessage, MessageType::Bullet);
+		if (_bullets[i].Time > Bullet::LifeTime)
+			_bullets.erase(_bullets.begin() + i);
 	}
 
 	engineUpdate(true);
@@ -56,8 +61,8 @@ void Server::UpdatePlayer(const int id, const int x, const int y, byte buttons, 
 		return;
 
 	//Fake loss percentage
-	if ((std::rand() % 1000) < 20)	//2%
-		return;
+	//if ((std::rand() % 1000) < 20)	//2%
+	//	return;
 
 	bool jump = (buttons & (1 << 0)) > 0;
 	bool shoot = (buttons & (1 << 1)) > 0;

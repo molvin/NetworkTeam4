@@ -4,7 +4,6 @@
 #include "Server.h"
 #include "Client.h"
 #include <array>
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -15,7 +14,6 @@
 #define IP "192.168.0.103"
 
 //TODO: try all local ips for server, so we dont have to switch ips
-//TODO: put connect on its own thread and keep trying until we connect
 
 //TODO: build script for building server and client at the same time
 
@@ -23,7 +21,6 @@ Server* server = nullptr;
 Client* client = nullptr;
 
 //TODO
-//Handle connect when server isn't up yet
 //Handle disconnect on server
 //Handle disconnect on client
 

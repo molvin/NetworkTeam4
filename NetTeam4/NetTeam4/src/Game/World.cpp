@@ -4,18 +4,21 @@
 
 World::World()
 {
-	Colliders.push_back(BoundingBox(100, 500, 600, 25));
+	Colliders.emplace_back(0, 575, 10000, 25);
+	Colliders.emplace_back(0, 0, 10000, 25);
+	Colliders.emplace_back(0, 0, 25, 1000);
+	Colliders.emplace_back(775, 0, 25, 1000);
 
 }
 
-void World::Update()
+void World::Update() const
 {
 	Draw();
 }
 
 void World::Draw() const
 {
-	for(BoundingBox obj : Colliders)
+	for(const BoundingBox& obj : Colliders)
 	{
 		engDrawRect(obj.X, obj.Y, obj.Width, obj.Height);
 	}
@@ -23,6 +26,7 @@ void World::Draw() const
 
 bool World::Colliding(const BoundingBox& collider, Vector2& normal) const
 {
+	//TODO: fix more correct normals
 	for (BoundingBox obj : Colliders)
 	{
 		if (collider.CollidesWith(obj))

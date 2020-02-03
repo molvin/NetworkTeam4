@@ -11,7 +11,10 @@ struct Bullet
 	int OwnerId;
 	Vector2 Position;
 	Vector2 Velocity;
+	float Time;
+
 	static float Speed;
+	static float LifeTime;
 };
 
 
