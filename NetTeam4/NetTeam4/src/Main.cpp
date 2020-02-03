@@ -11,8 +11,8 @@
 
 #undef main
 
-#define SERVER 0
-#define IP "10.20.3.3"
+#define SERVER 1
+#define IP "192.168.0.103"
 
 //TODO: try all local ips for server, so we dont have to switch ips
 //TODO: put connect on its own thread and keep trying until we connect
