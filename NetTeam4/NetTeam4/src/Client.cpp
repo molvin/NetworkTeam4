@@ -126,6 +126,11 @@ void Client::UpdatePlayer(const int ownerId, const float x, const float y, const
 	if (ownerId != Id)
 	{
 		_serverPositions[ownerId] = { x,y };
+		
+		float delta = (_players[ownerId].Position - Vector2{ x,y }).magnitude();
+		if (delta > 200)
+			_players[ownerId].Position = { x,y };
+
 		return;
 	}
 
@@ -146,6 +151,11 @@ void Client::UpdatePlayer(const int ownerId, const float x, const float y, const
 	ErrorX = (x - frame.X) - frame.RemainingX;
 	ErrorY = (y - frame.Y) - frame.RemainingY;
 	//printf("Server: %f, %f, Error: %f, %f\n", x, y, ErrorX, ErrorY);
+	if ((_players[Id].Position - Vector2{ ErrorX, ErrorY }).magnitude() > 200)
+	{
+		_players[Id].Position = { x,y };
+		ErrorX = ErrorY = 0.0f;
+	}
 	
 	//Update all frames since server present to show that remaining error to correct is the full error
 	std::vector<InputFrame> vec;

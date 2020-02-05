@@ -46,6 +46,7 @@ void Server::Update()
 
 				printf("Hit player\n");
 				it.second.Position = { 10000, 10000 };
+				it.second.Dead = true;
 				_bullets[i].Time = Bullet::LifeTime + 1.0f;
 				break;
 			}
@@ -63,8 +64,10 @@ void Server::Update()
 		}
 
 	}
-	for (const auto it : _players)
+	for (auto& it : _players)
 	{
+		it.second.ServerUpdate(*this);
+
 		PlayerMessage* playerMessage = new PlayerMessage();
 		playerMessage->Id = it.first;
 		playerMessage->X = it.second.Position.X;

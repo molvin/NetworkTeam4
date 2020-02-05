@@ -8,6 +8,8 @@
 //TODO: proper movement
 //TODO: super mario collision
 
+#define DEATH_DURATION 1.5f
+
 void PlayerMessage::Read(BinaryStream* stream, NetworkManager& manager)
 {
 	Id = stream->Read<int>();
@@ -99,8 +101,26 @@ void Player::Update(const int inputX, const int inputY, bool jump, bool shoot, c
 
 	if (shoot)
 	{
-		Server& server = (Server&) manager;
+		Server& server = (Server&)manager;
 		server.AddBullet(Id, Position, FacingDirection);
 	}
 
+
+	
+
+}
+
+void Player::ServerUpdate(Server& server)
+{
+	if (Dead)
+	{
+		DeathTimer += engDeltaTime();
+		if (DeathTimer > DEATH_DURATION)
+		{
+			DeathTimer = 0.0f;
+			Dead = false;
+			Position = server.world.SpawnPoints[Id % server.world.SpawnPoints.size()];
+			Velocity = Vector2::Zero;
+		}
+	}
 }

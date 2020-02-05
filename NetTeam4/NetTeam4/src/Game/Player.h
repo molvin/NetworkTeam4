@@ -4,6 +4,8 @@
 #include "../Game/World.h"
 #include "../Math/Math.h"
 
+class Server;
+
 class Player
 {
 public:
@@ -19,9 +21,12 @@ public:
 	const float MaxSpeed = 250.0f;
 	const float JumpSpeed = 800.0f;
 	bool Grounded;
+	bool Dead;
+	float DeathTimer = 0.0f;
 
 	Player() = default;
 	void Update(const int inputX, const int inputY, const bool jump, const bool shoot, const World& world, const float deltaTime, NetworkManager& manager);
+	void ServerUpdate(Server& server);
 };
 
 class PlayerMessage : Message
