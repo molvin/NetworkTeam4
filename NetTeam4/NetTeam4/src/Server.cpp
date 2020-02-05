@@ -7,6 +7,8 @@ int Bullet::IdCounter = 0;
 float Bullet::Speed = 1000;
 float Bullet::LifeTime = 3.0f;
 
+#define BULLET_SIZE 15
+
 Server::Server() : SocketClient(50000)
 {
 	SocketClient.RegisterMessage((Message*)new PlayerMessage(), MessageType::Player);
@@ -14,6 +16,7 @@ Server::Server() : SocketClient(50000)
 	SocketClient.RegisterMessage((Message*)new ConnectionIdMessage(), MessageType::ConnectionId);
 	SocketClient.RegisterMessage((Message*)new SpawnPlayerMessage(), MessageType::PlayerSpawnMessage);
 	SocketClient.RegisterMessage((Message*)new BulletMessage(), MessageType::Bullet);
+	SocketClient.RegisterMessage((Message*)new KillMessage(), MessageType::Kill);
 
 	SocketClient.Host();
 
@@ -21,6 +24,45 @@ Server::Server() : SocketClient(50000)
 
 void Server::Update()
 {
+	const int size = _bullets.size();
+	for (int i = size - 1; i >= 0; i--)
+	{
+		_bullets[i].Position += _bullets[i].Velocity * engDeltaTime();
+		_bullets[i].Time += engDeltaTime();
+
+		//Collision
+		for (auto it : _players)
+		{
+			BoundingBox player = BoundingBox(it.second.Position.X, it.second.Position.Y, it.second.W, it.second.H);
+			BoundingBox bullet = BoundingBox(_bullets[i].Position.X, _bullets[i].Position.Y, BULLET_SIZE, BULLET_SIZE);
+
+			if (bullet.CollidesWith(player) && _bullets[i].OwnerId != it.first)
+			{
+				KillMessage* killMessage = new KillMessage();
+				killMessage->BulletId = _bullets[i].Id;
+				killMessage->HitPlayerId = it.first;
+				killMessage->KillerId = _bullets[i].OwnerId;
+				SocketClient.AddMessageToQueue((Message*)killMessage, MessageType::Kill);
+
+				printf("Hit player\n");
+				it.second.Position = { 10000, 10000 };
+				_bullets[i].Time = Bullet::LifeTime + 1.0f;
+				break;
+			}
+		}
+				
+		BulletMessage* bulletMessage = new BulletMessage();
+		bulletMessage->Id = _bullets[i].Id;
+		bulletMessage->Position = _bullets[i].Position;
+		bulletMessage->DestroyFlag = _bullets[i].Time > Bullet::LifeTime;
+		SocketClient.AddMessageToQueue((Message*)bulletMessage, MessageType::Bullet);
+
+		if (_bullets[i].Time > Bullet::LifeTime)
+		{
+			_bullets.erase(_bullets.begin() + i);
+		}
+
+	}
 	for (const auto it : _players)
 	{
 		PlayerMessage* playerMessage = new PlayerMessage();
@@ -31,18 +73,6 @@ void Server::Update()
 		SocketClient.AddMessageToQueue((Message*)playerMessage, MessageType::Player);
 	}
 
-	const int size = _bullets.size();
-	for (int i = size - 1; i >= 0; i--)
-	{
-		_bullets[i].Position += _bullets[i].Velocity * engDeltaTime();
-		_bullets[i].Time += engDeltaTime();
-		BulletMessage* bulletMessage = new BulletMessage();
-		bulletMessage->Id = _bullets[i].Id;
-		bulletMessage->Position = _bullets[i].Position;
-		SocketClient.AddMessageToQueue((Message*)bulletMessage, MessageType::Bullet);
-		if (_bullets[i].Time > Bullet::LifeTime)
-			_bullets.erase(_bullets.begin() + i);
-	}
 
 	engineUpdate(true);
 
@@ -86,7 +116,7 @@ void Server::OnConnect(const std::string& ip, int port)
 
 	//_players[id] = Player();
 	_players[id].Id = id;
-	_players[id].Position = Vector2(id * 100);
+	_players[id].Position = world.SpawnPoints[id % world.SpawnPoints.size()];
 	_players[id].W = _players[id].H = 50;
 	_processedFramesPerPlayer[id] = 0;
 	printf("Player count: %d\n", (int)_players.size());
@@ -150,9 +180,10 @@ void BulletMessage::Read(BinaryStream* stream, NetworkManager& manager)
 	Id = stream->Read<int>();
 	Position.X = stream->Read<float>();
 	Position.Y = stream->Read<float>();
+	DestroyFlag = stream->Read<bool>();
 
 	Client& client = (Client&) manager;
-	client.UpdateBullets(Id, Position);
+	client.UpdateBullets(Id, Position, DestroyFlag);
 }
 
 int BulletMessage::Write(BinaryStream* stream)
@@ -160,5 +191,25 @@ int BulletMessage::Write(BinaryStream* stream)
 	stream->Write<int>(Id);
 	stream->Write<float>(Position.X);
 	stream->Write<float>(Position.Y);
+	stream->Write<bool>(DestroyFlag);
+	return sizeof(int) * 3 + sizeof(bool);
+}
+
+void KillMessage::Read(BinaryStream* stream, NetworkManager& manager)
+{
+	HitPlayerId = stream->Read<int>();
+	KillerId = stream->Read<int>();
+	BulletId = stream->Read<int>();
+
+	Client& client = (Client&)manager;
+	client.KillPlayer(HitPlayerId, KillerId, BulletId);
+}
+
+int KillMessage::Write(BinaryStream* stream)
+{
+	stream->Write<int>(HitPlayerId);
+	stream->Write<int>(KillerId);
+	stream->Write<int>(BulletId);
+
 	return sizeof(int) * 3;
 }

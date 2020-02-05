@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include <chrono>
+#include "../Math/Math.h"
 
 static SDL_Window* Window;
 static SDL_Renderer* Renderer;
@@ -91,7 +92,7 @@ void engineUpdate(bool isServer)
 
 float engDeltaTime()
 {
-	return DeltaTime;
+	return mathHelper::clamp(DeltaTime, 0.0f, 0.1f);
 }
 
 void engDrawRect(int X, int Y, int Width, int Height){

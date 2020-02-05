@@ -62,6 +62,18 @@ class BulletMessage : Message
 public:
 	int Id;
 	Vector2 Position;
+	bool DestroyFlag;
+
+	virtual void Read(BinaryStream* stream, NetworkManager& manager) override;
+	virtual int Write(BinaryStream* stream) override;
+};
+
+class KillMessage : Message
+{
+public:
+	int HitPlayerId;
+	int KillerId;
+	int BulletId;
 
 	virtual void Read(BinaryStream* stream, NetworkManager& manager) override;
 	virtual int Write(BinaryStream* stream) override;

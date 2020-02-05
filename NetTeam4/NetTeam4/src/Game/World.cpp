@@ -4,11 +4,16 @@
 
 World::World()
 {
+	//World objects
 	Colliders.emplace_back(0, 575, 10000, 25);
 	Colliders.emplace_back(0, 0, 10000, 25);
 	Colliders.emplace_back(0, 0, 25, 1000);
 	Colliders.emplace_back(775, 0, 25, 1000);
-
+	//Spawn points
+	SpawnPoints.emplace_back(100, 50);
+	SpawnPoints.emplace_back(200, 50);
+	SpawnPoints.emplace_back(300, 50);
+	SpawnPoints.emplace_back(400, 50);
 }
 
 void World::Update() const

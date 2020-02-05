@@ -7,6 +7,8 @@
 int InputFrame::FrameCounter = 0;
 float ClientBullet::Speed = 30;
 
+#define LERP_SPEED 35.0f
+
 Client::Client() : SocketClient(60000)
 {
 	//Register all Client messages
@@ -15,6 +17,7 @@ Client::Client() : SocketClient(60000)
 	SocketClient.RegisterMessage((Message*)new ConnectionIdMessage(), MessageType::ConnectionId);
 	SocketClient.RegisterMessage((Message*)new SpawnPlayerMessage(), MessageType::PlayerSpawnMessage);
 	SocketClient.RegisterMessage((Message*)new BulletMessage(), MessageType::Bullet);
+	SocketClient.RegisterMessage((Message*)new KillMessage(), MessageType::Kill);
 
 }
 
@@ -71,8 +74,16 @@ void Client::Update()
 	//TODO: update slave players, non local players
 
 	//Draw all players
-	for (const auto it : _players)
+	for (auto& it : _players)
 	{
+		if (it.first != Id)
+		{
+			float prevX = it.second.Position.X;
+			it.second.Position = mathHelper::lerp(it.second.Position, _serverPositions[it.first], mathHelper::clamp(LERP_SPEED * engDeltaTime(), 0.0f, 1.0f));
+			int dir = mathHelper::sign(it.second.Position.X - prevX);
+			it.second.FacingDirection = dir;
+		}
+		
 		engDrawRect((int)std::round(it.second.Position.X), (int)std::round(it.second.Position.Y), it.second.W, it.second.H);
 	}
 	for (auto& it : _bullets)
@@ -102,6 +113,7 @@ void Client::AddNewPlayer(const int ownerId, const float x, const float y)
 	_players[ownerId].Position.X = x;
 	_players[ownerId].Position.Y = y;
 	_players[ownerId].W = _players[ownerId].H = 50;
+	_serverPositions[ownerId] = { x,y };
 }
 
 void Client::UpdatePlayer(const int ownerId, const float x, const float y, const int frameId)
@@ -113,9 +125,7 @@ void Client::UpdatePlayer(const int ownerId, const float x, const float y, const
 	//Slave player
 	if (ownerId != Id)
 	{
-		_players[ownerId].Position.X = x;
-		_players[ownerId].Position.Y = y;
-		//TODO: interpolation to prevent stuttering
+		_serverPositions[ownerId] = { x,y };
 		return;
 	}
 
@@ -153,7 +163,7 @@ void Client::UpdatePlayer(const int ownerId, const float x, const float y, const
 	//TODO: should probably make frames a vector instead to prevent this ugly popping and re-pushing
 }
 
-void Client::UpdateBullets(int id, Vector2 position)
+void Client::UpdateBullets(int id, Vector2 position, bool destroyFlag)
 {
 	if (_bullets.find(id) == _bullets.end())
 	{
@@ -161,4 +171,14 @@ void Client::UpdateBullets(int id, Vector2 position)
 		_bullets[id].Position = _bullets[id].TargetPosition = position;
 	}
 	_bullets[id].TargetPosition = position;
+	if (destroyFlag)
+		_bullets.erase(id);
+}
+
+void Client::KillPlayer(const int playerId, const int killerId, const int bulletId)
+{
+	if (_players.find(playerId) == _players.end())
+		return;
+
+	_players[playerId].Position = { 10000, 10000 };
 }

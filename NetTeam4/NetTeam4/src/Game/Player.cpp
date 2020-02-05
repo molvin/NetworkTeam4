@@ -59,8 +59,12 @@ void Player::Update(const int inputX, const int inputY, bool jump, bool shoot, c
 	Velocity -= Vector2::Up * Gravity * deltaTime;
 	
 	if(mathHelper::abs(Velocity.X + inputX * Acceleration * deltaTime) < MaxSpeed)
-		Velocity += Vector2(inputX, inputY) * Acceleration * deltaTime;
+		Velocity += Vector2(inputX, 0.0f) * Acceleration * deltaTime;
+
+	if (inputX != 0)
+		FacingDirection = inputX;
 	
+	//TODO: do something with y input, i.e fast falling
 
 	Vector2 normal;
 	if (world.Colliding(BoundingBox(Position.X + Velocity.X * deltaTime, Position.Y + Velocity.Y * deltaTime, W, H), normal))
@@ -96,7 +100,7 @@ void Player::Update(const int inputX, const int inputY, bool jump, bool shoot, c
 	if (shoot)
 	{
 		Server& server = (Server&) manager;
-		server.AddBullet(Id, Position, 1);
+		server.AddBullet(Id, Position, FacingDirection);
 	}
 
 }

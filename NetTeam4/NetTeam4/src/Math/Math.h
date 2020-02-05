@@ -93,4 +93,8 @@ namespace mathHelper
 	{
 		return Vector2(lerp(min.X, max.X, value), lerp(min.Y, max.Y, value));
 	}
+	inline int sign(float value)
+	{
+		return value < 0.0f ? -1 : 1;
+	}
 }

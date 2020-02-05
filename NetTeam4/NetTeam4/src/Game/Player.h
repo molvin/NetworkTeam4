@@ -10,13 +10,14 @@ public:
 	int Id;
 	Vector2 Position;				
 	int  W, H = 50;
+	int FacingDirection = 1;
 
 	Vector2 Velocity;
-	const float Gravity = 1200.0f;
-	const float Acceleration = 850.0f;
+	const float Gravity = 1600.0f;
+	const float Acceleration = 1000.0f;
 	const float Friction = 15.0f;
-	const float MaxSpeed = 200.0f;
-	const float JumpSpeed = 500.0f;
+	const float MaxSpeed = 250.0f;
+	const float JumpSpeed = 800.0f;
 	bool Grounded;
 
 	Player() = default;
@@ -30,7 +31,6 @@ public:
 	float X;
 	float Y;
 	int FrameId;
-
 	virtual void Read(BinaryStream* stream, NetworkManager& manager) override;
 	virtual int Write(BinaryStream* stream) override;
 };

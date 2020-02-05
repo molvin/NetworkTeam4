@@ -32,12 +32,14 @@ public:
 	void Update();
 	void AddNewPlayer(int ownerId, float x, float y);
 	void UpdatePlayer(int ownerId, float x, float y, int frameId);
-	void UpdateBullets(int id, Vector2 position);
+	void UpdateBullets(const int id, const Vector2 position, const bool destroyFlag);
+	void KillPlayer(const int playerId, const int killerId, const int bulletId);
 
 	NetworkClient SocketClient;
 	std::map<int, Player> _players;
 	std::queue<InputFrame> _frames;
 	std::unordered_map<int, ClientBullet> _bullets;
+	std::unordered_map<int, Vector2> _serverPositions;
 	float ErrorX = 0.0f;
 	float ErrorY = 0.0f;
 	World world;
