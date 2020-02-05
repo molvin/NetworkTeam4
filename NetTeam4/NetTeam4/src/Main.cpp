@@ -10,7 +10,7 @@
 
 #undef main
 
-#define SERVER 1
+#define SERVER 0
 #define IP "10.20.3.3"
 
 //TODO: try all local ips for server, so we dont have to switch ips

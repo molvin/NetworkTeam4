@@ -31,7 +31,7 @@ void Server::Update()
 		_bullets[i].Time += engDeltaTime();
 
 		//Collision
-		for (auto it : _players)
+		for (auto& it : _players)
 		{
 			BoundingBox player = BoundingBox(it.second.Position.X, it.second.Position.Y, it.second.W, it.second.H);
 			BoundingBox bullet = BoundingBox(_bullets[i].Position.X, _bullets[i].Position.Y, BULLET_SIZE, BULLET_SIZE);
